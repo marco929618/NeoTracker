@@ -1,4 +1,4 @@
 # Solo per sviluppare e provare (non servono per usare il programma)
 -r requirements.txt
-playwright>=1.40      # prove nel browser (tests/e2e.py, tests/test_vita.py); poi: playwright install chromium
+playwright>=1.64.1      # prove nel browser (tests/e2e.py, tests/test_vita.py); poi: playwright install chromium
 bandit>=1.7.9         # analisi statica di sicurezza
