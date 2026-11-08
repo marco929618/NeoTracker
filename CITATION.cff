@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "Se usi NeoTracker in un lavoro di ricerca, citalo così. NeoTracker non è un dispositivo medico."
+title: "NeoTracker: mappa dei nei, storico fotografico e analisi con più modelli (strumento personale/di ricerca)"
+type: software
+license: GPL-3.0-or-later
+repository-code: "https://github.com/marco929618/NeoTracker"
+version: "1.2"
+date-released: "2026-11-08"
+authors:
+  - family-names: "Manta"
+    given-names: "Marco"
+    # affiliation: "..."   # facoltativo
+    # orcid: "https://orcid.org/0000-0000-0000-0000"   # facoltativo

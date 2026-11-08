@@ -1,0 +1,3 @@
+# Facoltativo ma consigliato: anteprime delle foto, rotazione, immagine personale, data di scatto (EXIF).
+# 10.3.0 e successive contengono le correzioni di sicurezza sull'apertura delle immagini.
+Pillow>=10.3.0

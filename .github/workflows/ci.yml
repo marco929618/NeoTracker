@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  prove:
+    name: Prove (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Installa Pillow
+        run: python -m pip install --upgrade pip "pillow>=10.3.0"
+      - name: Il programma generato è aggiornato (build.py)
+        run: |
+          python build.py
+          git diff --exit-code -- neotracker.py
+      - name: Sintassi
+        run: python -m py_compile neotracker.py melanoma_batch.py build.py tools/make_icon.py
+      - name: Prove di sicurezza
+        run: python tests/test_sicurezza.py
+      - name: Ciclo di vita della finestra
+        run: python tests/test_finestra.py
+      - name: Prova completa del backend (servizi finti)
+        run: python tests/test_api.py
+
+  bandit:
+    name: Analisi statica (bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install bandit
+      - name: Nessun problema di gravità media o alta
+        run: bandit -q -r neotracker.py melanoma_batch.py -ll

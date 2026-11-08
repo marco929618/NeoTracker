@@ -1,0 +1,42 @@
+# ---- DATI PERSONALI E SEGRETI: non vanno MAI nel repository --------------------------------
+NeoTracker_dati/
+profilo_finestra/
+*.db
+*.sqlite
+*.sqlite3
+impostazioni.json
+sessione.token
+*.log
+foto/
+miniature/
+rapporti/
+avatar/
+rapporto_melanoma_*/
+.env
+.env.*
+*.pem
+*.key
+
+# ---- modelli e pesi di terzi (grossi e con licenze proprie: non ridistribuirli) -------------
+*.keras
+*.h5
+*.weights.h5
+*.bin
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.ckpt
+melanoma-repos/
+
+# ---- file generati / ambienti ------------------------------------------------------------
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.idea/
+.vscode/
+tests/out/
+Thumbs.db
+.DS_Store
