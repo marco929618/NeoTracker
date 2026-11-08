@@ -4,10 +4,13 @@
 
 > ⚠️ **NeoTracker is NOT a medical device and does NOT diagnose.** The models are unvalidated research prototypes and can be
 > wrong both ways. Any mole that changes, bleeds, itches or worries you must be seen by a dermatologist, whatever the
-> software says. Read [DISCLAIMER.md](DISCLAIMER.md). *(Italian is the main language of the app and documentation.)*
+> software says. Read [DISCLAIMER.md](DISCLAIMER.md). *(The documentation is mainly in Italian; the app itself speaks five languages. The Italian text of the legal notices prevails.)*
 
 ## What it does
 
+- **Five languages**: Italian, English, French, German and Spanish. The interface starts in your system language and can be
+  changed in *Settings → Language* (applies to all users). The body map, notices, genetic criteria and the printable sheet are
+  translated too. The translations are community-reviewable: see [CONTRIBUTING.md](CONTRIBUTING.md) to fix or add a language.
 - Several **users** on one PC, each with an optional **personal picture**, a phenotype/family-history profile and separate data.
 - **Interactive body map** (front/back) to place each mole precisely; **dated photo history** (originals kept untouched),
   diameter tracking, side-by-side comparison and a **printable sheet for the dermatologist**.

@@ -79,11 +79,11 @@ def data_valida(testo):
     try:
         d = datetime.strptime((testo or "").strip(), "%Y-%m-%d").date()
     except ValueError:
-        raise ErroreRichiesta("Data non valida: usa il formato AAAA-MM-GG.")
+        raise ErroreRichiesta(T("Data non valida: usa il formato AAAA-MM-GG."))
     if d > date.today() + timedelta(days=1):
-        raise ErroreRichiesta("La data della foto non può essere nel futuro.")
+        raise ErroreRichiesta(T("La data della foto non può essere nel futuro."))
     if d.year < 1990:
-        raise ErroreRichiesta("Data della foto troppo vecchia.")
+        raise ErroreRichiesta(T("Data della foto troppo vecchia."))
     return d.isoformat()
 
 
@@ -94,9 +94,9 @@ def numero_o_vuoto(testo, minimo, massimo, nome):
     try:
         v = float(str(testo).replace(",", "."))
     except ValueError:
-        raise ErroreRichiesta(f"{nome}: inserisci un numero.")
+        raise ErroreRichiesta(T(f"{nome}: inserisci un numero."))
     if not (minimo <= v <= massimo):
-        raise ErroreRichiesta(f"{nome}: il valore deve essere tra {minimo:g} e {massimo:g}.")
+        raise ErroreRichiesta(T(f"{nome}: il valore deve essere tra {minimo:g} e {massimo:g}."))
     return round(v, 1)
 
 
@@ -106,14 +106,14 @@ def salva_foto(nevo_id, dati, data, usa_exif, tipo, diametro, note):
     (è la 'foto storica'). Restituisce l'id della foto e la data effettivamente usata.
     """
     if not dati:
-        raise ErroreRichiesta("Il file è vuoto.")
+        raise ErroreRichiesta(T("Il file è vuoto."))
     if len(dati) > MAX_MB_FOTO * 1024 * 1024:
-        raise ErroreRichiesta(f"La foto supera {MAX_MB_FOTO} MB.", 413)
+        raise ErroreRichiesta(T(f"La foto supera {MAX_MB_FOTO} MB."), 413)
     ext = riconosci_formato(dati)
     if ext is None:
-        raise ErroreRichiesta("Formato non supportato: servono JPG, PNG, WEBP o BMP. "
+        raise ErroreRichiesta(T("Formato non supportato: servono JPG, PNG, WEBP o BMP. "
                               "Le foto HEIC degli iPhone vanno convertite in JPG "
-                              "(impostazioni fotocamera: 'Più compatibile').")
+                              "(impostazioni fotocamera: 'Più compatibile')."))
     if tipo not in ("normale", "dermoscopica"):
         tipo = "normale"
     data_exif_trovata = None
@@ -127,16 +127,16 @@ def salva_foto(nevo_id, dati, data, usa_exif, tipo, diametro, note):
             with Image.open(io.BytesIO(dati)) as img:
                 data_exif_trovata = data_exif(img)
         except Exception:
-            raise ErroreRichiesta("Il file non è un'immagine leggibile, è danneggiato o ha troppi pixel "
-                                  f"(massimo {MAX_PIXEL_IMMAGINE // 1_000_000} megapixel).")
+            raise ErroreRichiesta(T("Il file non è un'immagine leggibile, è danneggiato o ha troppi pixel "
+                                  "(massimo {mp} megapixel).").format(mp=MAX_PIXEL_IMMAGINE // 1_000_000))
     data_finale = data_exif_trovata if (usa_exif and data_exif_trovata) else data_valida(data or date.today().isoformat())
-    diam = numero_o_vuoto(diametro, 0.5, 100, "Diametro (mm)")
+    diam = numero_o_vuoto(diametro, 0.5, 100, T("Diametro (mm)"))
     note = (note or "").strip()[:1000]
 
     with connetti() as con:
         nevo = con.execute("SELECT id, utente_id FROM nevi WHERE id=?", (nevo_id,)).fetchone()
         if nevo is None:
-            raise ErroreRichiesta("Neo non trovato.", 404)
+            raise ErroreRichiesta(T("Neo non trovato."), 404)
         sotto = Path(f"u{nevo['utente_id']}") / f"n{nevo_id}"
         nome_file = f"{data_finale.replace('-', '')}_{datetime.now().strftime('%H%M%S')}_{hashlib.sha1(dati, usedforsecurity=False).hexdigest()[:6]}{ext}"
         dest = cartella_foto() / sotto / nome_file
@@ -158,7 +158,7 @@ def miniatura(foto_id, utente_id, riga_foto, lato):
     """Miniatura JPEG della foto (ruotata correttamente, senza metadati). Restituisce (byte, tipo MIME)."""
     orig = percorso_foto(riga_foto)
     if orig is None:
-        raise ErroreRichiesta("File della foto non trovato.", 404)
+        raise ErroreRichiesta(T("File della foto non trovato."), 404)
     if not HA_PILLOW:
         return orig.read_bytes(), (mimetypes.guess_type(str(orig))[0] or "application/octet-stream")
     lato = lato if lato in (120, 240, 480, 960, 1600) else 480
@@ -228,12 +228,12 @@ def salva_avatar(utente_id, dati):
     """Controlla l'immagine, la ritaglia al centro in un quadrato, la riduce e la salva come JPEG
     SENZA metadati (niente GPS o dati della fotocamera). Senza Pillow accetta solo un JPEG/PNG già piccolo."""
     if not dati:
-        raise ErroreRichiesta("Il file è vuoto.")
+        raise ErroreRichiesta(T("Il file è vuoto."))
     if len(dati) > MAX_BYTE_AVATAR:
-        raise ErroreRichiesta(f"L'immagine supera {MAX_BYTE_AVATAR // (1024 * 1024)} MB.", 413)
+        raise ErroreRichiesta(T("L'immagine supera {mb} MB.").format(mb=MAX_BYTE_AVATAR // (1024 * 1024)), 413)
     ext = riconosci_formato(dati)
     if ext not in (".jpg", ".png", ".webp", ".bmp"):
-        raise ErroreRichiesta("Formato non supportato: servono JPG, PNG, WEBP o BMP.")
+        raise ErroreRichiesta(T("Formato non supportato: servono JPG, PNG, WEBP o BMP."))
     if HA_PILLOW:
         try:
             Image.MAX_IMAGE_PIXELS = MAX_PIXEL_IMMAGINE
@@ -259,11 +259,11 @@ def salva_avatar(utente_id, dati):
         except ErroreRichiesta:
             raise
         except Exception:
-            raise ErroreRichiesta("Il file non è un'immagine leggibile o è troppo grande.")
+            raise ErroreRichiesta(T("Il file non è un'immagine leggibile o è troppo grande."))
     else:
         if ext not in (".jpg", ".png") or len(dati) > 400 * 1024:
-            raise ErroreRichiesta("Senza Pillow l'immagine deve essere un JPG/PNG sotto i 400 KB "
-                                  "(la pagina la riduce da sola: riprova con la funzione 'Scegli immagine').")
+            raise ErroreRichiesta(T("Senza Pillow l'immagine deve essere un JPG/PNG sotto i 400 KB "
+                                  "(la pagina la riduce da sola: riprova con la funzione 'Scegli immagine')."))
         dati_finali = dati
     dest = percorso_avatar(utente_id)
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -334,12 +334,12 @@ def stato_installazione():
     n_vat = len(list((vatsal / "model").glob("model_fold_*.bin"))) if vatsal.exists() else 0
     return {"batch": str(trova_batch()) if trova_batch() else "", "repo": str(repo),
             "progetti": [
-                {"nome": "Metodo 1 - App 1 (Deborah Adedigba)", "presente": app1.exists(),
-                 "dettaglio": f"{n_app1} file modello su 10"},
-                {"nome": "Metodo 2 - SkinSense (servizio online)", "presente": True,
-                 "dettaglio": "attivo solo se lo abiliti qui sotto"},
-                {"nome": "Metodo 4 - vatsal30", "presente": vatsal.exists(),
-                 "dettaglio": f"{n_vat} file modello su 5"},
+                {"nome": T("Metodo 1 - App 1 (Deborah Adedigba)"), "presente": app1.exists(),
+                 "dettaglio": T("{n} file modello su 10").format(n=n_app1)},
+                {"nome": T("Metodo 2 - SkinSense (servizio online)"), "presente": True,
+                 "dettaglio": T("attivo solo se lo abiliti qui sotto")},
+                {"nome": T("Metodo 4 - vatsal30"), "presente": vatsal.exists(),
+                 "dettaglio": T("{n} file modello su 5").format(n=n_vat)},
             ]}
 
 
@@ -355,12 +355,12 @@ def accoda_analisi(foto_id):
     with connetti() as con:
         r = con.execute("SELECT stato_analisi FROM foto WHERE id=?", (foto_id,)).fetchone()
         if r is None:
-            raise ErroreRichiesta("Foto non trovata.", 404)
+            raise ErroreRichiesta(T("Foto non trovata."), 404)
         if r["stato_analisi"] in ("in_coda", "in_corso"):
             return r["stato_analisi"]
         if trova_batch() is None:
-            raise ErroreRichiesta("Non trovo melanoma_batch.py: deve stare nella stessa cartella di neotracker.py "
-                                  f"(oppure in {CARTELLA_REPO}).", 409)
+            raise ErroreRichiesta(T("Non trovo melanoma_batch.py: deve stare nella stessa cartella di neotracker.py "
+                                  f"(oppure in {CARTELLA_REPO})."), 409)
         con.execute("UPDATE foto SET stato_analisi='in_coda', messaggio='', esito='' WHERE id=?", (foto_id,))
     with _blocco_coda:
         _coda_analisi.append(foto_id)
@@ -382,7 +382,7 @@ def _ciclo_analisi():
         except Exception as e:                       # qualunque imprevisto: segno errore e passo alla prossima
             traceback.print_exc()
             try:
-                _scrivi_stato(foto_id, stato_analisi="errore", messaggio=f"Errore imprevisto: {e}")
+                _scrivi_stato(foto_id, stato_analisi="errore", messaggio=T(f"Errore imprevisto: {e}"))
             except Exception:
                 pass
 
@@ -412,7 +412,7 @@ def _esegui_analisi(foto_id):
         return                                       # foto cancellata mentre era in coda
     origine = percorso_foto(r)
     if origine is None:
-        _scrivi_stato(foto_id, stato_analisi="errore", messaggio="File della foto non trovato.")
+        _scrivi_stato(foto_id, stato_analisi="errore", messaggio=T("File della foto non trovato."))
         return
     batch = trova_batch()
     rel = f"rapporti/u{r['utente_id']}/f{foto_id}_{datetime.now().strftime('%Y%m%d-%H%M%S')}"
@@ -439,7 +439,7 @@ def _esegui_analisi(foto_id):
             p.kill()
             _processo_attuale.update(foto=None, popen=None)
             _scrivi_stato(foto_id, stato_analisi="errore",
-                          messaggio=f"Analisi interrotta dopo {TIMEOUT_ANALISI_S // 3600} ore (troppo lunga).")
+                          messaggio=T("Analisi interrotta dopo {ore} ore (troppo lunga).").format(ore=TIMEOUT_ANALISI_S // 3600))
             return
         finally:
             _processo_attuale.update(foto=None, popen=None)
@@ -448,7 +448,7 @@ def _esegui_analisi(foto_id):
     if sint is None:
         coda_log = ultime_righe(cartella / "log_analisi.txt", 6)
         _scrivi_stato(foto_id, stato_analisi="errore",
-                      messaggio="L'analisi non ha prodotto il rapporto. Ultime righe del log: " + (coda_log or "(vuoto)"))
+                      messaggio=T("L'analisi non ha prodotto il rapporto. Ultime righe del log: {log}").format(log=coda_log or T("(vuoto)")))
         return
     _scrivi_stato(foto_id, stato_analisi="ok", esito=sint["esito"], messaggio="")
 
@@ -509,7 +509,7 @@ def sintesi_rapporto(rel):
         conteggi = {}
         for x in ok:
             conteggi[x.get("etichetta")] = conteggi.get(x.get("etichetta"), 0) + 1
-        frase = "; ".join(f"{n} su {len(ok)}: {et}" for et, n in sorted(conteggi.items(), key=lambda kv: -kv[1]))
+        frase = "; ".join(T("{n} su {tot}: {et}").format(n=n, tot=len(ok), et=et) for et, n in sorted(conteggi.items(), key=lambda kv: -kv[1]))
         verd = verdetto_metodo(ris)
         giudizi[m.get("metodo")] = verd
         metodi.append({"numero": m.get("metodo"), "titolo": m.get("titolo"), "introduzione": m.get("introduzione", ""),

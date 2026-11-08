@@ -69,7 +69,8 @@ def passo(nome, ok, extra=""):
 
 with sync_playwright() as p:
     b = p.chromium.launch(executable_path=os.environ.get("NEOTRACKER_TEST_CHROME", "/usr/bin/google-chrome"), args=["--no-sandbox"])
-    ctx = b.new_context(viewport={"width": 1366, "height": 860}, permissions=["geolocation"], geolocation={"latitude": 45.07, "longitude": 7.69})
+    ctx = b.new_context(viewport={"width": 1366, "height": 860}, permissions=["geolocation"], geolocation={"latitude": 45.07, "longitude": 7.69},
+                      locale="it-IT")      # lingua automatica = quella del browser: le prove controllano i testi italiani
     pg = ctx.new_page()
     pg.on("console", lambda m: log.append(m.type + ": " + m.text) if m.type in ("error", "warning") else None)
     pg.on("pageerror", lambda e: log.append("PAGEERROR: " + str(e)))

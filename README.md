@@ -20,6 +20,9 @@
 
 ## Che cosa fa
 
+- **Cinque lingue**: italiano, inglese, francese, tedesco e spagnolo. L'interfaccia parte nella lingua del sistema e si
+  cambia in *Impostazioni → Lingua* (vale per tutti gli utenti). Tradotti anche mappa del corpo, avvertenze, criteri
+  genetici e scheda stampabile; fa fede il testo italiano delle avvertenze legali.
 - **Più utenti** sullo stesso PC, ciascuno con la propria **immagine personale** facoltativa, profilo (fototipo, capelli,
   occhi, nei, familiarità) e dati separati.
 - **Mappa interattiva del corpo** (fronte e retro): clicchi dove sta il neo e il punto resta salvato con precisione.
@@ -91,9 +94,11 @@ python build.py                       # rigenera neotracker.py da src/ e web/
 python tests/test_sicurezza.py        # prove di sicurezza (nessuna dipendenza esterna oltre a Pillow)
 python tests/test_finestra.py         # ciclo di vita della finestra
 python tests/test_api.py              # prova completa del backend con servizi finti
+python tests/test_i18n.py             # lingue: dizionari completi, impostazione, pagina servita
+python tools/traduzioni.py            # controlla che ogni testo sia tradotto in tutte le lingue
 ```
 
-`tests/e2e.py` e `tests/test_vita.py` provano l'app in un vero browser e richiedono Playwright e Chrome
+`tests/e2e.py`, `tests/e2e_lingue.py` e `tests/test_vita.py` provano l'app in un vero browser e richiedono Playwright e Chrome
 (vedi [tests/README.md](tests/README.md)). Il programma usa solo la libreria standard di Python (Pillow è facoltativo).
 
 Contributi benvenuti: leggi [CONTRIBUTING.md](CONTRIBUTING.md).

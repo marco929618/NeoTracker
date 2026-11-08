@@ -113,6 +113,14 @@ import textwrap          # manda a capo il testo lungo in modo ordinato
 import time              # misura i tempi e prende data/ora
 import traceback         # descrizione dettagliata degli errori
 
+
+
+def T(testo):
+    """Segna un testo italiano che NeoTracker mostra tradotto nella lingua scelta (dizionari web/i18n_XX.js).
+    Qui non fa nulla: da terminale il rapporto resta in italiano."""
+    return testo
+
+
 # Nomi delle cartelle create dallo script di installazione.
 CARTELLA_APP1 = "DeborahAdedigba_Melanoma-Detection_App"
 CARTELLA_VATSAL = "vatsal30_Melanoma-Detection"
@@ -124,12 +132,12 @@ ESTENSIONI_OK = (".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff")
 # significato e un giudizio "grossolano": "attenzione" = lesione maligna o pre-maligna,
 # "benigno" = lesione benigna. E' una classificazione semplificata, solo per il riepilogo.
 CLASSI_APP1 = {
-    "ACK": ("cheratosi attinica, lesione pre-cancerosa", "attenzione"),
-    "BCC": ("carcinoma basocellulare, tumore della pelle", "attenzione"),
-    "MEL": ("melanoma", "attenzione"),
-    "NEV": ("nevo, cioe' neo benigno", "benigno"),
-    "SCC": ("carcinoma squamocellulare, tumore della pelle", "attenzione"),
-    "SEK": ("cheratosi seborroica, benigna", "benigno"),
+    "ACK": (T("cheratosi attinica, lesione pre-cancerosa"), "attenzione"),
+    "BCC": (T("carcinoma basocellulare, tumore della pelle"), "attenzione"),
+    "MEL": (T("melanoma"), "attenzione"),
+    "NEV": (T("nevo, cioe' neo benigno"), "benigno"),
+    "SCC": (T("carcinoma squamocellulare, tumore della pelle"), "attenzione"),
+    "SEK": (T("cheratosi seborroica, benigna"), "benigno"),
 }
 ORDINE_CLASSI_APP1 = ["ACK", "BCC", "MEL", "NEV", "SCC", "SEK"]  # ordine usato dai modelli
 
@@ -292,8 +300,8 @@ def lavora_app1(foto, tipo, repo):
         percorsi = [cartella / n for n in nomi_file]
         return all(p.exists() and e_segnaposto_lfs(p) for p in percorsi)
 
-    messaggio_lfs = (f"i modelli di App 1 non sono stati scaricati: sono ancora dei segnaposto Git LFS. "
-                     f"Apri PowerShell nella cartella {cartella} e lancia 'git lfs pull', poi riprova.")
+    messaggio_lfs = (T(f"i modelli di App 1 non sono stati scaricati: sono ancora dei segnaposto Git LFS. "
+                     f"Apri PowerShell nella cartella {cartella} e lancia 'git lfs pull', poi riprova."))
 
     # ---- Gruppo "foto di pelle": ricetta + file dei pesi ------------------------------------
     gruppo_pelle = [
@@ -333,8 +341,8 @@ def lavora_app1(foto, tipo, repo):
                 if e_segnaposto_lfs(percorso):
                     risultati.append(nuovo_risultato(
                         nome, "non_disponibile", gruppo="foto di pelle",
-                        nota=f"{file_pesi} e' ancora un segnaposto Git LFS: apri PowerShell nella cartella "
-                             f"{cartella} e lancia 'git lfs pull'."))
+                        nota=T(f"{file_pesi} e' ancora un segnaposto Git LFS: apri PowerShell nella cartella "
+                             f"{cartella} e lancia 'git lfs pull'.")))
                     continue
                 modello = ricetta()
                 modello.load_weights(str(percorso))                       # carica i pesi addestrati
@@ -365,8 +373,8 @@ def lavora_app1(foto, tipo, repo):
                 if e_segnaposto_lfs(percorso):
                     risultati.append(nuovo_risultato(
                         nome, "non_disponibile", gruppo="dermoscopia",
-                        nota=f"{file_modello} e' ancora un segnaposto Git LFS: lancia 'git lfs pull' "
-                             f"nella cartella {cartella}."))
+                        nota=T(f"{file_modello} e' ancora un segnaposto Git LFS: lancia 'git lfs pull' "
+                             f"nella cartella {cartella}.")))
                     continue
                 # compile=False: ci serve solo per fare previsioni, non per riaddestrarlo.
                 # NB: non disattivo mai la 'safe mode' di Keras: un file modello scaricato da
@@ -391,7 +399,7 @@ def lavora_app1(foto, tipo, repo):
                     risultati.append(nuovo_risultato(
                         nome, "ok", etich, max(pm, 1 - pm), None,
                         "attenzione" if pm > 0.5 else "benigno", gruppo="dermoscopia",
-                        nota=f"probabilita' di malignita' stimata dal modello: {pm:.0%}",
+                        nota=T(f"probabilita' di malignita' stimata dal modello: {pm:.0%}"),
                         dettaglio={"prob_maligno": round(pm, 4)}, secondi=round(time.time() - t0, 1)))
                 elif n == 2:
                     pm = float(p[1])
@@ -399,19 +407,19 @@ def lavora_app1(foto, tipo, repo):
                     risultati.append(nuovo_risultato(
                         nome, "ok", etich, max(pm, 1 - pm), None,
                         "attenzione" if pm > 0.5 else "benigno", gruppo="dermoscopia",
-                        nota="assumo che le 2 uscite siano [benigno, maligno]; ordine non verificabile",
+                        nota=T("assumo che le 2 uscite siano [benigno, maligno]; ordine non verificabile"),
                         dettaglio={"prob_benigno": round(float(p[0]), 4), "prob_maligno": round(pm, 4)},
                         secondi=round(time.time() - t0, 1)))
                 elif n == 6:
                     etichetta, verdetto, sicurezza, p_mel, tutte = etichetta_classi(p)
                     risultati.append(nuovo_risultato(
                         nome, "ok", etichetta, sicurezza, p_mel, verdetto, gruppo="dermoscopia",
-                        nota="uscita letta come le 6 classi di pelle (non verificabile)",
+                        nota=T("uscita letta come le 6 classi di pelle (non verificabile)"),
                         dettaglio={"probabilita_per_classe": tutte}, secondi=round(time.time() - t0, 1)))
                 else:
                     risultati.append(nuovo_risultato(
                         nome, "ok", f"classe numero {int(np.argmax(p))}", float(np.max(p)), None, "incerto",
-                        gruppo="dermoscopia", nota=f"il modello ha {n} uscite: significato sconosciuto",
+                        gruppo="dermoscopia", nota=T(f"il modello ha {n} uscite: significato sconosciuto"),
                         secondi=round(time.time() - t0, 1)))
             except Exception as e:
                 traceback.print_exc()
@@ -440,7 +448,7 @@ def lavora_skinsense(foto, url, cartella_out):
     t0 = time.time()
     # Difesa: l'indirizzo deve essere https (niente "file:" o "ftp:", che leggerebbero file del tuo PC).
     if not str(url).lower().startswith("https://"):
-        return [nuovo_risultato("SkinSense", "errore", nota="indirizzo del servizio non ammesso (serve https)")]
+        return [nuovo_risultato("SkinSense", "errore", nota=T("indirizzo del servizio non ammesso (serve https)"))]
     # ---- 1. Pulizia dei metadati ------------------------------------------------------------
     nota_pulizia = ""
     try:
@@ -454,7 +462,7 @@ def lavora_skinsense(foto, url, cartella_out):
     except Exception as e:
         # Se Pillow non riesce, NON invio l'originale (potrebbe contenere il GPS): mi fermo.
         return [nuovo_risultato("SkinSense", "errore",
-                                nota=f"non riesco a preparare la foto in modo sicuro: {e}")]
+                                nota=T(f"non riesco a preparare la foto in modo sicuro: {e}"))]
 
     # ---- 2. Costruzione della richiesta HTTP 'multipart' (il modo standard per inviare file) -
     confine = uuid.uuid4().hex
@@ -487,7 +495,7 @@ def lavora_skinsense(foto, url, cartella_out):
             print(f"SkinSense: primo tentativo fallito ({ultimo_errore}); riprovo tra 30 secondi...")
             time.sleep(30)
     if risposta is None:
-        return [nuovo_risultato("SkinSense", "errore", nota=f"servizio non raggiungibile: {ultimo_errore}")]
+        return [nuovo_risultato("SkinSense", "errore", nota=T(f"servizio non raggiungibile: {ultimo_errore}"))]
 
     # ---- 4. Lettura della risposta -----------------------------------------------------------
     nome_lesione = str(risposta.get("full_name") or "").strip()
@@ -529,8 +537,8 @@ def lavora_skinsense(foto, url, cartella_out):
     rischio = risposta.get("risk_level")
     nota = f"livello di rischio dichiarato dal servizio: {rischio}" if rischio else ""
     if not nome_lesione:
-        return [nuovo_risultato("SkinSense", "errore", nota="risposta senza nome della lesione: "
-                                f"{json.dumps(risposta, ensure_ascii=False)[:300]}")]
+        return [nuovo_risultato("SkinSense", "errore", nota=T("risposta senza nome della lesione: {risposta}").format(
+                                    risposta=json.dumps(risposta, ensure_ascii=False)[:300]))]
     return [nuovo_risultato("SkinSense", "ok", nome_lesione, c, None, verdetto, nota=nota,
                             dettaglio=dettaglio, secondi=round(time.time() - t0, 1))]
 
@@ -550,9 +558,9 @@ def lavora_vatsal(foto, repo):
     if not pesi:
         return [nuovo_risultato(
             "SE-ResNeXt50 x5", "non_disponibile",
-            nota=f"mancano i pesi addestrati: nella cartella {cartella / 'model'} non ci sono i file "
-                 f"model_fold_0.bin ... model_fold_4.bin. Il repository non li contiene: vanno prodotti "
-                 f"con train.py sul dataset SIIM-ISIC.")]
+            nota=T("mancano i pesi addestrati: nella cartella {cartella} non ci sono i file "
+                 "model_fold_0.bin ... model_fold_4.bin. Il repository non li contiene: vanno prodotti "
+                 "con train.py sul dataset SIIM-ISIC.").format(cartella=cartella / 'model'))]
 
     import numpy as np
     import torch
@@ -603,7 +611,7 @@ def lavora_vatsal(foto, repo):
         f"SE-ResNeXt50 x{len(pesi)}", "ok",
         "melanoma rilevato" if melanoma else "melanoma non rilevato",
         prob if melanoma else 1 - prob, prob, "attenzione" if melanoma else "benigno",
-        nota=f"media di {len(pesi)} modelli; punteggio medio {media_punteggi:+.2f} (soglia 0)",
+        nota=T("media di {n} modelli; punteggio medio {media} (soglia 0)").format(n=len(pesi), media=f"{media_punteggi:+.2f}"),
         dettaglio={"punteggi_per_fold": [round(s, 3) for s in punteggi]},
         secondi=round(time.time() - t0, 1))]
 
@@ -617,7 +625,7 @@ def esegui_worker(nome, args):
             apri_immagine_rgb(args.foto).close()
         except Exception as e:
             salva_json(args.out, [nuovo_risultato(nome, "errore",
-                                                  nota=f"la foto non si apre come immagine ({type(e).__name__}): {str(e)[:200]}")])
+                                                  nota=T("la foto non si apre come immagine ({tipo}): {dettaglio}").format(tipo=type(e).__name__, dettaglio=str(e)[:200]))])
             return
         if nome == "app1":
             risultati = lavora_app1(args.foto, args.tipo, args.repo)
@@ -680,16 +688,16 @@ def lancia_operaio(nome, python_exe, argomenti, timeout, cartella_out):
         with open(file_log, "w", encoding="utf-8", errors="replace") as log:
             subprocess.run(comando, stdout=log, stderr=subprocess.STDOUT, timeout=timeout, env=ambiente)
     except subprocess.TimeoutExpired:
-        return [nuovo_risultato(nome, "errore", nota=f"interrotto dopo {timeout // 60} minuti (tempo massimo)")]
+        return [nuovo_risultato(nome, "errore", nota=T("interrotto dopo {minuti} minuti (tempo massimo)").format(minuti=timeout // 60))]
     except Exception as e:
-        return [nuovo_risultato(nome, "errore", nota=f"impossibile avviare: {e}")]
+        return [nuovo_risultato(nome, "errore", nota=T(f"impossibile avviare: {e}"))]
     if file_json.exists():
         try:
             dati = json.loads(file_json.read_text(encoding="utf-8"))
             file_json.unlink()                                  # il file temporaneo non serve piu'
             return dati
         except Exception as e:
-            return [nuovo_risultato(nome, "errore", nota=f"risposta illeggibile: {e}")]
+            return [nuovo_risultato(nome, "errore", nota=T(f"risposta illeggibile: {e}"))]
     # Nessuna risposta: l'operaio e' morto prima di scrivere. Prendo le ultime righe del log.
     try:
         ultime = [r for r in file_log.read_text(encoding="utf-8", errors="replace").splitlines() if r.strip()][-6:]
@@ -884,52 +892,52 @@ def principale():
     metodi = []          # lista di (numero, titolo, risultati, introduzione)
 
     # ---- METODO 1: App 1 ----
-    titolo1 = "App 1 (DeborahAdedigba) - modelli TensorFlow"
+    titolo1 = T("App 1 (DeborahAdedigba) - modelli TensorFlow")
     if USA_APP1 and not args.senza_app1:
         print("Metodo 1 (App 1): avvio... la prima volta puo' volerci parecchio, i modelli sono grandi.")
         py = python_app1 or Path(sys.executable)
-        intro = "" if python_app1 else ("Attenzione: non ho trovato l'ambiente .venv di App 1, uso il Python corrente.")
+        intro = "" if python_app1 else (T("Attenzione: non ho trovato l'ambiente .venv di App 1, uso il Python corrente."))
         r1 = lancia_operaio("app1", py, ["--foto", str(foto), "--tipo", args.tipo, "--repo", str(repo)],
                             TIMEOUT_APP1, cartella_out)
         metodi.append((1, titolo1, r1, intro))
     else:
-        metodi.append((1, titolo1, [nuovo_risultato("App 1", "non_eseguibile", nota="Metodo 1 disattivato dalle impostazioni.")], ""))
+        metodi.append((1, titolo1, [nuovo_risultato("App 1", "non_eseguibile", nota=T("Metodo 1 disattivato dalle impostazioni."))], ""))
 
     # ---- METODO 2: SkinSense ----
-    titolo2 = "SkinSense (servizio online)"
+    titolo2 = T("SkinSense (servizio online)")
     if USA_SKINSENSE and not args.senza_skinsense:
         print("Metodo 2 (SkinSense): invio della foto (senza metadati) al servizio online...")
         py = python_app1 or Path(sys.executable)
         r2 = lancia_operaio("skinsense", py, ["--foto", str(foto), "--url", args.url], TIMEOUT_SKINSENSE, cartella_out)
-        metodi.append((2, titolo2, r2, "Questo metodo prevede l'invio dei pixel della foto (non dei metadati) a un server esterno."))
+        metodi.append((2, titolo2, r2, T("Questo metodo prevede l'invio dei pixel della foto (non dei metadati) a un server esterno.")))
     else:
         metodi.append((2, titolo2, [nuovo_risultato(
             "SkinSense", "non_eseguibile",
-            nota="Metodo 2 non eseguito (disattivato nelle impostazioni): la foto non e' uscita dal PC.")], ""))
+            nota=T("Metodo 2 non eseguito (disattivato nelle impostazioni): la foto non e' uscita dal PC."))], ""))
 
     # ---- METODO 3: Melanoma-Detector (nessuna analisi possibile) ----
-    metodi.append((3, "Melanoma-Detector (VukIG)", [nuovo_risultato(
+    metodi.append((3, T("Melanoma-Detector (VukIG)"), [nuovo_risultato(
         "Melanoma-Detector", "non_eseguibile",
-        nota="Il metodo 3 NON ha analizzato la foto: il progetto e' un prototipo senza modello. Il suo "
+        nota=T("Il metodo 3 NON ha analizzato la foto: il progetto e' un prototipo senza modello. Il suo "
              "server si limita a ricevere l'immagine (nessuna rete neurale), quindi qualunque testo "
-             "rassicurante mostri non deriva da un'analisi e non ha alcun valore.")], ""))
+             "rassicurante mostri non deriva da un'analisi e non ha alcun valore."))], ""))
 
     # ---- METODO 4: vatsal30 ----
-    titolo4 = "vatsal30 / Melanoma-Detection (PyTorch)"
+    titolo4 = T("vatsal30 / Melanoma-Detection (PyTorch)")
     if USA_VATSAL and not args.senza_vatsal:
         print("Metodo 4 (vatsal30): avvio...")
         py = python_vatsal or Path(sys.executable)
         r4 = lancia_operaio("vatsal", py, ["--foto", str(foto), "--repo", str(repo)], TIMEOUT_VATSAL, cartella_out)
         metodi.append((4, titolo4, r4, ""))
     else:
-        metodi.append((4, titolo4, [nuovo_risultato("vatsal30", "non_eseguibile", nota="Metodo 4 disattivato dalle impostazioni.")], ""))
+        metodi.append((4, titolo4, [nuovo_risultato("vatsal30", "non_eseguibile", nota=T("Metodo 4 disattivato dalle impostazioni."))], ""))
 
     # ---- METODO 5: ukalwa (Android) ----
-    metodi.append((5, "ukalwa / melanoma-detection (app Android)", [nuovo_risultato(
+    metodi.append((5, T("ukalwa / melanoma-detection (app Android)"), [nuovo_risultato(
         "ukalwa", "non_eseguibile",
-        nota="Il metodo 5 e' un'app Android: non puo' girare dal PC. Installa l'APK sul telefono, "
+        nota=T("Il metodo 5 e' un'app Android: non puo' girare dal PC. Installa l'APK sul telefono, "
              "inquadra il neo e annota a mano il risultato qui sotto.\n"
-             "Risultato dell'app sul telefono: ______________________________")], ""))
+             "Risultato dell'app sul telefono: ______________________________"))], ""))
 
     # ---- Rapporto ----
     testo = costruisci_rapporto(foto, args.tipo, metodi, time.time() - t_inizio)

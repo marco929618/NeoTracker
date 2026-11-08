@@ -2,6 +2,22 @@
 
 Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [1.3] - 2026-11-08
+
+### Aggiunto
+- **Multilingua**: interfaccia in italiano, inglese, francese, tedesco e spagnolo (mappa del corpo, messaggi, avvertenze,
+  criteri genetici, letteratura, indice UV, scheda stampabile, finestrelle d'avvio). La lingua parte da quella del
+  sistema e si cambia in *Impostazioni → Lingua*. Date e numeri seguono la lingua scelta.
+- `tools/traduzioni.py`: estrae i testi dal codice e controlla che le traduzioni ci siano tutte (con gli stessi segnaposto);
+  `build.py` si ferma se ne manca qualcuna.
+- Prove: `tests/test_i18n.py` e `tests/e2e_lingue.py` (ogni schermata nelle 4 lingue, con screenshot).
+
+### Note
+- I dati salvati restano in italiano e vengono tradotti solo alla visualizzazione. Il rapporto di testo (`rapporto.txt`) e i
+  messaggi della console dell'analisi restano in italiano. Fa fede il testo italiano delle avvertenze legali.
+- Le traduzioni sono state fatte con un assistente AI e vanno riviste da madrelingua.
+- La pagina «Accesso non autorizzato» è ora in cinque lingue.
+
 ## [1.2] - 2026-11-08
 
 ### Aggiunto

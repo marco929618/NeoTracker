@@ -80,6 +80,7 @@ IMPOSTAZIONI_PREDEFINITE = {
     "lat": None, "lon": None,     # posizione per l'indice UV
     "localita": "",               # nome del posto (es. 'Torino, IT')
     "ncbi_email": "",             # facoltativo: la tua email per cortesia verso PubMed
+    "lingua": "auto",             # lingua dell'interfaccia: "auto" (come il sistema/browser) oppure it, en, fr, de, es
 }
 _blocco_impostazioni = threading.Lock()
 
@@ -93,6 +94,28 @@ def leggi_impostazioni():
     except Exception:
         pass
     return dati
+
+
+def lingua_corrente():
+    """
+    Lingua da usare fuori dal browser (per esempio nelle finestrelle di errore all'avvio): quella scelta
+    nelle Impostazioni oppure, con "auto", quella del sistema. Se il sistema usa una lingua non
+    supportata si ripiega sull'inglese.
+    """
+    scelta = leggi_impostazioni().get("lingua")
+    if scelta in LINGUE:
+        return scelta
+    codice = ""
+    try:
+        import locale
+        codice = (locale.getlocale()[0] or os.environ.get("LANG") or "")[:2].lower()
+        if os.name == "nt":                       # lingua dell'interfaccia di Windows (più affidabile)
+            import ctypes
+            codice = {0x10: "it", 0x09: "en", 0x0C: "fr", 0x07: "de", 0x0A: "es"}.get(
+                ctypes.windll.kernel32.GetUserDefaultUILanguage() & 0x3FF, codice)
+    except Exception:
+        pass
+    return codice if codice in LINGUE else "en"
 
 
 def salva_impostazioni(nuove):
