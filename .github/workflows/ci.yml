@@ -28,13 +28,15 @@ jobs:
           python build.py
           git diff --exit-code -- neotracker.py
       - name: Sintassi
-        run: python -m py_compile neotracker.py melanoma_batch.py build.py tools/make_icon.py
+        run: python -m py_compile neotracker.py melanoma_batch.py build.py tools/make_icon.py tools/traduzioni.py
       - name: Prove di sicurezza
         run: python tests/test_sicurezza.py
       - name: Ciclo di vita della finestra
         run: python tests/test_finestra.py
       - name: Prova completa del backend (servizi finti)
         run: python tests/test_api.py
+      - name: Lingue (traduzioni complete, impostazione, pagina)
+        run: python tests/test_i18n.py
 
   bandit:
     name: Analisi statica (bandit)

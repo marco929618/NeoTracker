@@ -121,7 +121,8 @@
     } else {
       singola('Cuoio capelluto (testa)', rect(150, 24, 250, 122));
     }
-    singola(fr ? 'Collo' : 'Nuca e collo', rect(168, fr ? 128 : 116, 232, 170));
+    if (fr) singola('Collo', rect(168, 128, 232, 170));
+    else singola('Nuca e collo', rect(168, 116, 232, 170));
     // tronco
     if (fr) {
       coppia('Torace', 'm', rect(134, 160, 200, 302));
@@ -142,8 +143,13 @@
     coppia('Avambraccio', 'm', trattoPoly(BRACCIO, 4, 6, e));
     coppia('Mano', 'f', trattoPoly(BRACCIO, 6, 9, e + 3));
     coppia('Coscia', 'f', trattoPoly(GAMBA, 0, 3, e));
-    coppia(fr ? 'Ginocchio' : 'Cavo popliteo', 'm', trattoPoly(GAMBA, 3, 5, e));
-    coppia(fr ? 'Gamba (stinco)' : 'Polpaccio', fr ? 'f' : 'm', trattoPoly(GAMBA, 5, 8, e));
+    if (fr) {
+      coppia('Ginocchio', 'm', trattoPoly(GAMBA, 3, 5, e));
+      coppia('Gamba (stinco)', 'f', trattoPoly(GAMBA, 5, 8, e));
+    } else {
+      coppia('Cavo popliteo', 'm', trattoPoly(GAMBA, 3, 5, e));
+      coppia('Polpaccio', 'm', trattoPoly(GAMBA, 5, 8, e));
+    }
     coppia('Caviglia', 'f', trattoPoly(GAMBA, 8, 9, e));
     coppia('Piede', 'm', rect(128, 822, 200, 880));
     // orecchie (sopra la testa)
@@ -197,13 +203,14 @@
 
   function svgCompleto(ft) {
     let s = '<svg xmlns="' + NS + '" class="corpo-svg" viewBox="0 0 ' + VB_W + ' ' + VB_H + '" preserveAspectRatio="xMidYMid meet" role="img" ' +
-      'aria-label="Mappa del corpo umano: fronte a sinistra, retro a destra">';
+      'aria-label="' + esc(window.NT.t('Mappa del corpo umano: fronte a sinistra, retro a destra')) + '">';
     s += figura('fronte', ft, 0) + figura('retro', ft, LARG);
     // etichette fisse
+    const D = esc(window.NT.t('D')), Sx = esc(window.NT.t('S'));          // destra / sinistra del paziente
     s += '<g class="etichette">' +
-      '<text x="200" y="14" text-anchor="middle">FRONTE</text><text x="600" y="14" text-anchor="middle">RETRO</text>' +
-      '<text x="22" y="64" class="lato">D</text><text x="378" y="64" text-anchor="end" class="lato">S</text>' +
-      '<text x="422" y="64" class="lato">S</text><text x="778" y="64" text-anchor="end" class="lato">D</text></g>';
+      '<text x="200" y="14" text-anchor="middle">' + esc(window.NT.t('FRONTE')) + '</text><text x="600" y="14" text-anchor="middle">' + esc(window.NT.t('RETRO')) + '</text>' +
+      '<text x="22" y="64" class="lato">' + D + '</text><text x="378" y="64" text-anchor="end" class="lato">' + Sx + '</text>' +
+      '<text x="422" y="64" class="lato">' + Sx + '</text><text x="778" y="64" text-anchor="end" class="lato">' + D + '</text></g>';
     s += '<g class="marcatori"></g></svg>';
     return s;
   }

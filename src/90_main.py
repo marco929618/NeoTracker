@@ -60,6 +60,53 @@ def prepara_uscita_testo():
         sys.stderr = f
 
 
+# Testi delle finestrelle di errore all'avvio (compaiono prima che il browser sia pronto, quindi non possono
+# usare i dizionari web/i18n_XX.js). La chiave è il testo italiano; build.py controlla che ci siano tutte le lingue.
+TESTI_AVVIO = {
+    "NeoTracker è già acceso": {
+        "en": "NeoTracker is already running", "fr": "NeoTracker est déjà lancé",
+        "de": "NeoTracker läuft bereits", "es": "NeoTracker ya está en ejecución"},
+    "Non riesco ad aprire una nuova finestra perché manca la chiave di sessione.\n"
+    "Chiudi NeoTracker (dal Task Manager, processo Python) e riaprilo dall'icona.": {
+        "en": "I cannot open a new window because the session key is missing.\n"
+              "Close NeoTracker (from Task Manager, Python process) and reopen it from its icon.",
+        "fr": "Impossible d'ouvrir une nouvelle fenêtre : la clé de session est introuvable.\n"
+              "Fermez NeoTracker (depuis le Gestionnaire des tâches, processus Python) puis rouvrez-le avec son icône.",
+        "de": "Es kann kein neues Fenster geöffnet werden, weil der Sitzungsschlüssel fehlt.\n"
+              "Beenden Sie NeoTracker (im Task-Manager, Python-Prozess) und starten Sie es erneut über das Symbol.",
+        "es": "No puedo abrir una ventana nueva porque falta la clave de sesión.\n"
+              "Cierra NeoTracker (desde el Administrador de tareas, proceso Python) y vuelve a abrirlo desde el icono."},
+    "NeoTracker non si avvia": {
+        "en": "NeoTracker cannot start", "fr": "NeoTracker ne démarre pas",
+        "de": "NeoTracker startet nicht", "es": "NeoTracker no se inicia"},
+    "Non riesco a usare la porta {porta} ({e}).\n"
+    "Un altro programma la sta usando. Chiudilo oppure cambia PORTA in cima al file neotracker.py.": {
+        "en": "I cannot use port {porta} ({e}).\n"
+              "Another program is using it. Close it, or change PORTA at the top of neotracker.py.",
+        "fr": "Impossible d'utiliser le port {porta} ({e}).\n"
+              "Un autre programme l'utilise. Fermez-le ou modifiez PORTA en haut du fichier neotracker.py.",
+        "de": "Der Port {porta} kann nicht verwendet werden ({e}).\n"
+              "Ein anderes Programm belegt ihn. Beenden Sie es oder ändern Sie PORTA am Anfang von neotracker.py.",
+        "es": "No puedo usar el puerto {porta} ({e}).\n"
+              "Otro programa lo está usando. Ciérralo o cambia PORTA al principio del archivo neotracker.py."},
+    "NeoTracker si è fermato": {
+        "en": "NeoTracker has stopped", "fr": "NeoTracker s'est arrêté",
+        "de": "NeoTracker wurde beendet", "es": "NeoTracker se ha detenido"},
+    "Dettagli in:": {
+        "en": "Details in:", "fr": "Détails dans :", "de": "Details in:", "es": "Detalles en:"},
+}
+
+
+def testo_avvio(testo, **parametri):
+    """Il testo della finestrella di errore nella lingua dell'utente (se manca la traduzione, resta l'italiano)."""
+    try:
+        lingua = lingua_corrente()
+    except Exception:
+        lingua = "it"
+    scelto = TESTI_AVVIO.get(testo, {}).get(lingua, testo)
+    return scelto.format(**parametri) if parametri else scelto
+
+
 def mostra_errore(titolo, testo):
     """Mostra un problema grave. Con la finestra nera basta scriverlo; senza finestra nera
     (icona sul Desktop) nessuno leggerebbe il log, quindi compare una finestrella di Windows."""
@@ -67,7 +114,7 @@ def mostra_errore(titolo, testo):
     if os.name == "nt" and _USCITA_ORIGINALE["senza_console"]:
         try:
             import ctypes
-            ctypes.windll.user32.MessageBoxW(None, f"{testo}\n\nDettagli in:\n{percorso_log()}", titolo, 0x10)   # 0x10 = icona di errore
+            ctypes.windll.user32.MessageBoxW(None, f"{testo}\n\n{testo_avvio('Dettagli in:')}\n{percorso_log()}", titolo, 0x10)   # 0x10 = icona di errore
         except Exception:
             pass
 
@@ -298,9 +345,9 @@ def avvia():
                 # la leggiamo dal file che ha scritto all'avvio.
                 chiave = leggi_token_da_file()
                 if stato.get("protetto") and not chiave:
-                    mostra_errore("NeoTracker è già acceso",
-                                  "Non riesco ad aprire una nuova finestra perché manca la chiave di sessione.\n"
-                                  "Chiudi NeoTracker (dal Task Manager, processo Python) e riaprilo dall'icona.")
+                    mostra_errore(testo_avvio("NeoTracker è già acceso"),
+                                  testo_avvio("Non riesco ad aprire una nuova finestra perché manca la chiave di sessione.\n"
+                                              "Chiudi NeoTracker (dal Task Manager, processo Python) e riaprilo dall'icona."))
                     return
                 print("NeoTracker è già acceso: apro una finestra.")
                 apri_finestra(url + (f"?avvio={chiave}" if chiave else ""))
@@ -310,9 +357,10 @@ def avvia():
         try:
             server = Server((INDIRIZZO, PORTA), Gestore)
         except OSError as e:
-            mostra_errore("NeoTracker non si avvia",
-                          f"Non riesco a usare la porta {PORTA} ({e}).\n"
-                          "Un altro programma la sta usando. Chiudilo oppure cambia PORTA in cima al file neotracker.py.")
+            mostra_errore(testo_avvio("NeoTracker non si avvia"),
+                          testo_avvio("Non riesco a usare la porta {porta} ({e}).\n"
+                                      "Un altro programma la sta usando. Chiudilo oppure cambia PORTA in cima al file neotracker.py.",
+                                      porta=PORTA, e=e))
             return
         STATO_FINESTRA.azzera()                                   # il conto delle pagine aperte riparte da zero
         scrivi_token_su_file()                                    # la chiave di questa sessione (serve a una seconda icona cliccata)
@@ -341,7 +389,7 @@ def avvia():
             print("NeoTracker chiuso. A presto.")
     except Exception as e:                                        # errore imprevisto all'avvio: lo mostro chiaramente
         traceback.print_exc()
-        mostra_errore("NeoTracker si è fermato", f"{type(e).__name__}: {e}")
+        mostra_errore(testo_avvio("NeoTracker si è fermato"), f"{type(e).__name__}: {e}")
 
 
 if __name__ == "__main__":

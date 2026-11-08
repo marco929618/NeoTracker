@@ -116,7 +116,18 @@ try:
 except Exception:                            # senza Pillow l'app funziona lo stesso, ma senza miniature
     HA_PILLOW = False
 
-VERSIONE = "1.2"
+VERSIONE = "1.3"
 # Versione dell'avviso iniziale ("non è un dispositivo medico..."). Se la cambi, tutti gli utenti lo rivedono e lo riaccettano.
 AVVERTENZE_VERSIONE = "1"
+
+# Lingue dell'interfaccia. L'italiano è il testo originale (e quello che fa fede); le altre sono traduzioni
+# (web/i18n_XX.js). Nelle Impostazioni si può scegliere anche "auto" = segui la lingua del sistema/browser.
+LINGUE = ("it", "en", "fr", "de", "es")
+
+
+def T(testo):
+    """Segna un testo italiano destinato all'utente: il browser lo traduce con il dizionario della lingua scelta
+    (web/i18n_XX.js), cercandolo per intero oppure, se contiene valori variabili, per "forma" (es. "{n} giorni").
+    A runtime non fa nulla: serve a build.py per verificare che ogni testo segnato abbia la traduzione."""
+    return testo
 CARTELLA_SCRIPT = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()

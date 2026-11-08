@@ -6,8 +6,8 @@
   const NT = window.NT, S = NT.S, h = NT.h, $ = NT.$;
 
   const VOCI = [
-    ['mappa', 'Mappa dei nei', 'mappa'], ['profilo', 'Profilo', 'profilo'], ['letteratura', 'Letteratura', 'letteratura'],
-    ['genetica', 'Genetica', 'genetica'], ['uv', 'Indice UV', 'uv'], ['impostazioni', 'Impostazioni', 'impostazioni'],
+    ['mappa', NT.t('Mappa dei nei'), 'mappa'], ['profilo', NT.t('Profilo'), 'profilo'], ['letteratura', NT.t('Letteratura'), 'letteratura'],
+    ['genetica', NT.t('Genetica'), 'genetica'], ['uv', NT.t('Indice UV'), 'uv'], ['impostazioni', NT.t('Impostazioni'), 'impostazioni'],
   ];
 
   NT.colorePerNome = nome => { let x = 0; for (const c of nome) x = (x * 31 + c.charCodeAt(0)) % 360; return 'hsl(' + x + ',45%,38%)'; };
@@ -29,13 +29,15 @@
 
   function disegnaTestata(attiva) {
     const menu = $('#menu');
+    menu.setAttribute('aria-label', NT.t('Sezioni'));
+    $('#piede').textContent = NT.t('NeoTracker non è uno strumento medico e non fa diagnosi. Per qualsiasi neo che cambia, sanguina, prude o ti preoccupa, rivolgiti a un dermatologo.');
     menu.replaceChildren(...VOCI.map(([id, testo, ico]) =>
       h('a', { href: '#/' + id, class: 'voce' + (id === attiva ? ' attiva' : ''), 'aria-current': id === attiva ? 'page' : null }, NT.icona(ico, 18), h('span', {}, testo))));
     const box = $('#utente-box');
     box.replaceChildren(S.utente
-      ? h('a', { href: '#/utenti', class: 'utente-chip', title: 'Cambia utente' }, NT.avatar(S.utente.nome, 28, S.utente),
-        h('span', { class: 'utente-nome' }, S.utente.nome), h('span', { class: 'utente-cambia' }, 'Cambia'))
-      : h('a', { href: '#/utenti', class: 'utente-chip' }, h('span', { class: 'utente-nome' }, 'Scegli utente')));
+      ? h('a', { href: '#/utenti', class: 'utente-chip', title: NT.t('Cambia utente') }, NT.avatar(S.utente.nome, 28, S.utente),
+        h('span', { class: 'utente-nome' }, S.utente.nome), h('span', { class: 'utente-cambia' }, NT.t('Cambia')))
+      : h('a', { href: '#/utenti', class: 'utente-chip' }, h('span', { class: 'utente-nome' }, NT.t('Scegli utente'))));
   }
 
   async function route() {
@@ -51,8 +53,8 @@
     try { await NT.viste[nome](cont); }
     catch (e) {
       console.error(e);
-      cont.replaceChildren(h('div', { class: 'scheda errore-pagina' }, h('h2', {}, 'Qualcosa non ha funzionato'), h('p', {}, e.message || String(e)),
-        h('button', { class: 'btn', onclick: () => route() }, 'Riprova')));
+      cont.replaceChildren(h('div', { class: 'scheda errore-pagina' }, h('h2', {}, NT.t('Qualcosa non ha funzionato')), h('p', {}, e.message || String(e)),
+        h('button', { class: 'btn', onclick: () => route() }, NT.t('Riprova'))));
     }
     window.scrollTo(0, 0);
   }
@@ -117,7 +119,7 @@
       const ultimo = parseInt(NT.ls.leggi('nt_utente') || '', 10);
       if (ultimo && S.utenti.some(u => u.id === ultimo)) await NT.scegliUtente(ultimo, false);
     } catch (e) {
-      $('#vista').replaceChildren(h('div', { class: 'scheda errore-pagina' }, h('h2', {}, 'NeoTracker non risponde'), h('p', {}, e.message)));
+      $('#vista').replaceChildren(h('div', { class: 'scheda errore-pagina' }, h('h2', {}, NT.t('NeoTracker non risponde')), h('p', {}, e.message)));
       return;
     }
     window.addEventListener('hashchange', route);

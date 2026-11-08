@@ -52,6 +52,11 @@ screening, la responsabilità regolatoria è tua: non basta citare questo avviso
 materiali che lo accompagnano, come strumento diagnostico, di screening o «di intelligenza artificiale che
 riconosce il melanoma».
 
+### Lingue dell'interfaccia
+
+Il programma è tradotto in inglese, francese, tedesco e spagnolo per comodità. Le traduzioni possono contenere errori:
+**in caso di dubbio o di differenze fa fede il testo italiano** delle avvertenze, dei criteri e delle informazioni mediche.
+
 *Questo documento non è consulenza legale.*
 
 ## English
@@ -69,5 +74,10 @@ hereditary-melanoma criteria. It is **not a medical device**, it is **not CE-mar
   2017/745, FDA). This project has no such conformity assessment. Anyone redistributing it for clinical or
   patient-facing use bears the regulatory responsibility and should not market it as diagnostic or screening software.
 - Provided "as is" without warranty (GPL-3.0 §15–16).
+
+### Interface languages
+
+The app is also translated into English, French, German and Spanish for convenience. Translations may contain mistakes:
+**in case of doubt or discrepancy the Italian text prevails** for the notices, criteria and medical information.
 
 *This is not legal advice.*

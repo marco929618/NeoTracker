@@ -5,11 +5,25 @@
 # NON è un dispositivo medico e non fa diagnosi: vedi DISCLAIMER.md.
 # Costruisce neotracker.py (il programma da eseguire) unendo i pezzi src/*.py e incorporando le pagine web (web/*).
 import base64
+import importlib.util
 import py_compile
 import sys
 from pathlib import Path
 
 radice = Path(__file__).resolve().parent
+
+# ---- controllo delle traduzioni: se un testo non ha la traduzione in tutte le lingue, non si costruisce nulla ----
+_spec = importlib.util.spec_from_file_location("traduzioni", radice / "tools" / "traduzioni.py")
+_traduzioni = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_traduzioni)
+_errori, _avvisi, _testi = _traduzioni.controlla()
+for _a in _avvisi:
+    print("avviso:", _a)
+if _errori:
+    for _e in _errori:
+        print("ERRORE:", _e)
+    sys.exit(f"Costruzione interrotta: {len(_errori)} problemi nelle traduzioni (vedi sopra; dettagli con: python3 tools/traduzioni.py)")
+print(f"Traduzioni OK: {len(_testi)} testi in {len(_traduzioni.lingue()) - 1} lingue.")
 tipi = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
         ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".png": "image/png"}
 

@@ -3,7 +3,8 @@
    ============================================================================ */
 (function () {
   'use strict';
-  const NT = window.NT = { S: { utenti: [], utente: null, nei: [], imp: {}, stato: {} }, viste: {}, pulizie: [] };
+  const NT = window.NT;                      // creato da i18n.js (che si carica per primo)
+  Object.assign(NT, { S: { utenti: [], utente: null, nei: [], imp: {}, stato: {} }, viste: {}, pulizie: [] });
 
   NT.$ = (s, r) => (r || document).querySelector(s);
   NT.$$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -90,11 +91,11 @@
     else if (corpo !== undefined && corpo !== null) { init.body = JSON.stringify(corpo); init.headers['Content-Type'] = 'application/json'; }
     let r;
     try { r = await fetch(url, init); }
-    catch (e) { throw new Error('Non riesco a contattare NeoTracker. Il programma potrebbe essere stato chiuso: riaprilo dall\'icona sul Desktop.'); }
+    catch (e) { throw new Error(NT.t('Non riesco a contattare NeoTracker. Il programma potrebbe essere stato chiuso: riaprilo dall\'icona sul Desktop.')); }
     const t = await r.text();
     let d = null;
     try { d = t ? JSON.parse(t) : null; } catch (e) { /* risposta non JSON */ }
-    if (!r.ok) { const er = new Error((d && d.errore) || ('Errore ' + r.status)); er.codice = r.status; throw er; }
+    if (!r.ok) { const er = new Error((d && d.errore) ? NT.tr(d.errore) : NT.t('Errore {codice}', { codice: r.status })); er.codice = r.status; throw er; }
     return d;
   };
   NT.get = (url) => NT.api('GET', url);
@@ -127,11 +128,11 @@
       const fine = v => { if (!fatto) { fatto = true; res(v); } NT.chiudiDialogo(); };
       const campo = opz.scrivi ? h('input', { type: 'text', class: 'campo', autocomplete: 'off', placeholder: opz.scrivi,
         oninput: () => { ok.disabled = campo.value.trim() !== opz.scrivi; } }) : null;
-      const ok = h('button', { class: 'btn ' + (opz.pericolo ? 'btn-pericolo' : 'btn-pri'), disabled: !!opz.scrivi, onclick: () => fine(campo ? campo.value.trim() : true) }, opz.si || 'Conferma');
+      const ok = h('button', { class: 'btn ' + (opz.pericolo ? 'btn-pericolo' : 'btn-pri'), disabled: !!opz.scrivi, onclick: () => fine(campo ? campo.value.trim() : true) }, opz.si || NT.t('Conferma'));
       const d = NT.apriDialogo(h('div', {},
         h('h3', {}, titolo), h('p', {}, testo),
-        opz.scrivi ? h('label', { class: 'etichetta' }, 'Per confermare scrivi: ', h('strong', {}, opz.scrivi)) : null, campo,
-        h('div', { class: 'azioni' }, h('button', { class: 'btn', onclick: () => fine(false) }, 'Annulla'), ok)));
+        opz.scrivi ? h('label', { class: 'etichetta' }, NT.t('Per confermare scrivi:') + ' ', h('strong', {}, opz.scrivi)) : null, campo,
+        h('div', { class: 'azioni' }, h('button', { class: 'btn', onclick: () => fine(false) }, NT.t('Annulla')), ok)));
       d.addEventListener('close', () => fine(false), { once: true });
       if (campo) campo.focus();
     });
@@ -146,13 +147,9 @@
   });
 
   /* ---------- date e varie ---------- */
-  NT.fmtData = iso => { if (!iso) return ''; const [a, m, g] = iso.slice(0, 10).split('-'); return g + '/' + m + '/' + a; };
   NT.oggiISO = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   NT.dataDaMs = ms => { const d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   NT.giorniTra = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000);
-  NT.fraseGiorni = g => g === null || g === undefined ? '' : g <= 0 ? 'oggi' : g === 1 ? 'ieri' : g < 60 ? g + ' giorni fa' : g < 700 ? Math.round(g / 30.4) + ' mesi fa' : Math.round(g / 365) + ' anni fa';
-  NT.num = (n, dec) => (n === null || n === undefined) ? '' : Number(n).toFixed(dec === undefined ? 1 : dec).replace('.', ',');
-  NT.perc = v => v === null || v === undefined ? '' : (v * 100).toFixed(v >= 0.995 || v < 0.01 ? 1 : 0).replace('.', ',') + '%';
   NT.ls = {
     leggi: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
     scrivi: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* non disponibile */ } },
@@ -160,15 +157,15 @@
   NT.debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
   /* spinner e segnaposto */
-  NT.caricamento = (testo) => h('div', { class: 'caricamento' }, h('span', { class: 'spinner' }), testo || 'Caricamento…');
+  NT.caricamento = (testo) => h('div', { class: 'caricamento' }, h('span', { class: 'spinner' }), testo || NT.t('Caricamento…'));
   NT.vuoto = (titolo, testo) => h('div', { class: 'vuoto' }, h('strong', {}, titolo), testo ? h('p', {}, testo) : null);
 
   /* Etichetta dell'esito dell'analisi (colori volutamente prudenti: "benigno" non e' mai verde rassicurante) */
   NT.ESITI = {
-    attenzione: { testo: 'Da attenzionare', cls: 'esito-att' },
-    discordante: { testo: 'Metodi in disaccordo', cls: 'esito-disc' },
-    benigno: { testo: 'Nessun allarme dai modelli', cls: 'esito-ben' },
-    nessuno: { testo: 'Nessun risultato', cls: 'esito-nes' },
+    attenzione: { testo: NT.t('Da attenzionare'), cls: 'esito-att' },
+    discordante: { testo: NT.t('Metodi in disaccordo'), cls: 'esito-disc' },
+    benigno: { testo: NT.t('Nessun allarme dai modelli'), cls: 'esito-ben' },
+    nessuno: { testo: NT.t('Nessun risultato'), cls: 'esito-nes' },
   };
   NT.chipEsito = (esito) => { const e = NT.ESITI[esito]; return e ? h('span', { class: 'chip ' + e.cls }, e.testo) : null; };
 
@@ -191,11 +188,11 @@
           g.fillStyle = '#ffffff'; g.fillRect(0, 0, lato, lato);          // le parti trasparenti diventano bianche
           g.imageSmoothingQuality = 'high';
           g.drawImage(img, sx, sy, q, q, 0, 0, lato, lato);
-          c.toBlob(b => b ? res(b) : rej(new Error('Non riesco a ridurre questa immagine.')), 'image/jpeg', 0.88);
-        } catch (e) { rej(new Error('Non riesco a leggere questa immagine. Prova con un JPG o un PNG.')); }
+          c.toBlob(b => b ? res(b) : rej(new Error(NT.t('Non riesco a ridurre questa immagine.'))), 'image/jpeg', 0.88);
+        } catch (e) { rej(new Error(NT.t('Non riesco a leggere questa immagine. Prova con un JPG o un PNG.'))); }
         finally { URL.revokeObjectURL(url); }
       };
-      img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Non riesco a leggere questa immagine. Prova con un JPG o un PNG.')); };
+      img.onerror = () => { URL.revokeObjectURL(url); rej(new Error(NT.t('Non riesco a leggere questa immagine. Prova con un JPG o un PNG.'))); };
       img.src = url;
     });
   };
@@ -208,21 +205,21 @@
         NT.S.imp = await NT.api('PUT', '/api/impostazioni', { avvertenze_accettate: NT.S.stato.avvertenze_versione });
         NT.chiudiDialogo();
       } catch (e) { NT.errore(e); }
-    } }, 'Accetto e continuo');
+    } }, NT.t('Accetto e continuo'));
     spunta.addEventListener('change', () => { ok.disabled = !spunta.checked; });
     const d = NT.apriDialogo(h('div', { class: 'avvertenze' },
-      h('h3', {}, 'Prima di cominciare'),
-      h('p', {}, h('strong', {}, 'NeoTracker non è un dispositivo medico e non fa diagnosi. '),
-        'È uno strumento personale per organizzare le foto dei tuoi nei e confrontare nel tempo i risultati di alcuni modelli di ricerca. Non è certificato né approvato da alcuna autorità sanitaria.'),
+      h('h3', {}, NT.t('Prima di cominciare')),
+      h('p', {}, h('strong', {}, NT.t('NeoTracker non è un dispositivo medico e non fa diagnosi.') + ' '),
+        NT.t('È uno strumento personale per organizzare le foto dei tuoi nei e confrontare nel tempo i risultati di alcuni modelli di ricerca. Non è certificato né approvato da alcuna autorità sanitaria.')),
       h('ul', {},
-        h('li', {}, 'I risultati sono stime sperimentali e possono sbagliare in entrambe le direzioni: un esito rassicurante non esclude un melanoma, un esito di attenzione non significa che ci sia.'),
-        h('li', {}, 'Un neo che cambia (forma, bordi, colore, dimensioni), sanguina, prude o ti preoccupa va mostrato a un dermatologo, qualunque cosa dica l\'app. Il controllo periodico dal dermatologo resta insostituibile.'),
-        h('li', {}, 'Le informazioni su rischio, letteratura e genetica sono divulgative e non sostituiscono la consulenza di un medico o di un genetista.'),
-        h('li', {}, 'I dati (anche di salute) restano su questo computer. Escono solo le richieste che attivi tu: indice UV (coordinate approssimate), ricerche su PubMed (solo i termini cercati) e, solo se lo attivi, l\'invio della foto a SkinSense.'),
-        h('li', {}, 'Se inserisci dati o foto di altre persone, assicurati di avere il loro consenso.')),
-      h('label', { class: 'spunta grande' }, spunta, ' Ho letto e capito queste avvertenze'),
+        h('li', {}, NT.t('I risultati sono stime sperimentali e possono sbagliare in entrambe le direzioni: un esito rassicurante non esclude un melanoma, un esito di attenzione non significa che ci sia.')),
+        h('li', {}, NT.t('Un neo che cambia (forma, bordi, colore, dimensioni), sanguina, prude o ti preoccupa va mostrato a un dermatologo, qualunque cosa dica l\'app. Il controllo periodico dal dermatologo resta insostituibile.')),
+        h('li', {}, NT.t('Le informazioni su rischio, letteratura e genetica sono divulgative e non sostituiscono la consulenza di un medico o di un genetista.')),
+        h('li', {}, NT.t('I dati (anche di salute) restano su questo computer. Escono solo le richieste che attivi tu: indice UV (coordinate approssimate), ricerche su PubMed (solo i termini cercati) e, solo se lo attivi, l\'invio della foto a SkinSense.')),
+        h('li', {}, NT.t('Se inserisci dati o foto di altre persone, assicurati di avere il loro consenso.'))),
+      h('label', { class: 'spunta grande' }, spunta, ' ' + NT.t('Ho letto e capito queste avvertenze')),
       h('div', { class: 'azioni' },
-        h('button', { class: 'btn', onclick: () => { NT.api('POST', '/api/chiudi').catch(() => {}); NT.battitoAttivo = false; if (NT.presenza) NT.presenza.close(); document.title = 'NeoTracker chiuso'; NT.chiudiDialogo(); } }, 'Esci dal programma'),
+        h('button', { class: 'btn', onclick: () => { NT.api('POST', '/api/chiudi').catch(() => {}); NT.battitoAttivo = false; if (NT.presenza) NT.presenza.close(); document.title = NT.t('NeoTracker chiuso'); NT.chiudiDialogo(); } }, NT.t('Esci dal programma')),
         ok)));
     d.addEventListener('cancel', ev => ev.preventDefault());           // il tasto Esc non salta l'avviso
     return d;

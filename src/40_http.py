@@ -51,7 +51,7 @@ def pulisci_profilo(grezzo):
     """Tiene solo i campi previsti e li controlla uno per uno. Valori strani diventano 'vuoto'."""
     out = {}
     if not isinstance(grezzo, dict):
-        raise ErroreRichiesta("Profilo non valido.")
+        raise ErroreRichiesta(T("Profilo non valido."))
     for campo, (tipo, regola) in CAMPI_PROFILO.items():
         if campo not in grezzo:
             continue
@@ -68,9 +68,9 @@ def pulisci_profilo(grezzo):
                 try:
                     d = datetime.strptime(v, "%Y-%m-%d").date()
                 except ValueError:
-                    raise ErroreRichiesta("Data di nascita non valida (AAAA-MM-GG).")
+                    raise ErroreRichiesta(T("Data di nascita non valida (AAAA-MM-GG)."))
                 if not (date(1900, 1, 1) <= d <= date.today()):
-                    raise ErroreRichiesta("Data di nascita fuori intervallo.")
+                    raise ErroreRichiesta(T("Data di nascita fuori intervallo."))
             out[campo] = v
         elif tipo == "testo":
             out[campo] = (str(v) if v is not None else "").strip()[:regola]
@@ -94,12 +94,12 @@ def profilo_completo(testo_json):
     return base
 
 
-def nome_valido(testo, minimo=1, massimo=60, cosa="Il nome"):
+def nome_valido(testo, minimo=1, massimo=60, cosa=T("Il nome")):
     t = re.sub(r"\s+", " ", (testo or "")).strip()
     if len(t) < minimo:
-        raise ErroreRichiesta(f"{cosa} non può essere vuoto.")
+        raise ErroreRichiesta(T(f"{cosa} non può essere vuoto."))
     if len(t) > massimo:
-        raise ErroreRichiesta(f"{cosa} è troppo lungo (massimo {massimo} caratteri).")
+        raise ErroreRichiesta(T(f"{cosa} è troppo lungo (massimo {massimo} caratteri)."))
     return t
 
 
@@ -119,7 +119,7 @@ class Richiesta:
         if self._corpo is None:
             lung = a_intero(self.gestore.headers.get("Content-Length"), 0)
             if lung > massimo:
-                raise ErroreRichiesta("Richiesta troppo grande.", 413)
+                raise ErroreRichiesta(T("Richiesta troppo grande."), 413)
             self._corpo = self.gestore.rfile.read(lung) if lung > 0 else b""
         return self._corpo
 
@@ -127,9 +127,9 @@ class Richiesta:
         try:
             d = json.loads(self.corpo().decode("utf-8") or "{}")
         except ValueError:
-            raise ErroreRichiesta("Dati non validi (JSON).")
+            raise ErroreRichiesta(T("Dati non validi (JSON)."))
         if not isinstance(d, dict):
-            raise ErroreRichiesta("Dati non validi.")
+            raise ErroreRichiesta(T("Dati non validi."))
         return d
 
 
@@ -141,21 +141,21 @@ class RispostaFile:
 def get_utente(con, uid):
     r = con.execute("SELECT * FROM utenti WHERE id=?", (uid,)).fetchone()
     if r is None:
-        raise ErroreRichiesta("Utente non trovato.", 404)
+        raise ErroreRichiesta(T("Utente non trovato."), 404)
     return r
 
 
 def get_nevo(con, nid):
     r = con.execute("SELECT * FROM nevi WHERE id=?", (nid,)).fetchone()
     if r is None:
-        raise ErroreRichiesta("Neo non trovato.", 404)
+        raise ErroreRichiesta(T("Neo non trovato."), 404)
     return r
 
 
 def get_foto(con, fid):
     r = con.execute("SELECT f.*, n.utente_id FROM foto f JOIN nevi n ON n.id=f.nevo_id WHERE f.id=?", (fid,)).fetchone()
     if r is None:
-        raise ErroreRichiesta("Foto non trovata.", 404)
+        raise ErroreRichiesta(T("Foto non trovata."), 404)
     return r
 
 
@@ -171,7 +171,7 @@ def _id_pagina(rq):
     """Legge e controlla il numero casuale che identifica la pagina aperta (solo lettere/cifre/trattini)."""
     i = str(rq.json().get("id", ""))
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", i):
-        raise ErroreRichiesta("Identificativo di pagina non valido.")
+        raise ErroreRichiesta(T("Identificativo di pagina non valido."))
     return i
 
 
@@ -227,7 +227,7 @@ def api_utente_crea(rq):
     nome = nome_valido(rq.json().get("nome"))
     with connetti() as con:
         if con.execute("SELECT 1 FROM utenti WHERE nome=? COLLATE NOCASE", (nome,)).fetchone():
-            raise ErroreRichiesta("Esiste già un utente con questo nome.", 409)
+            raise ErroreRichiesta(T("Esiste già un utente con questo nome."), 409)
         cur = con.execute("INSERT INTO utenti (nome, creato) VALUES (?,?)", (nome, adesso()))
         return {"id": cur.lastrowid, "nome": nome}
 
@@ -247,7 +247,7 @@ def api_utente_rinomina(rq):
     with connetti() as con:
         u = get_utente(con, int(rq.gruppi[0]))
         if con.execute("SELECT 1 FROM utenti WHERE nome=? COLLATE NOCASE AND id<>?", (nome, u["id"])).fetchone():
-            raise ErroreRichiesta("Esiste già un utente con questo nome.", 409)
+            raise ErroreRichiesta(T("Esiste già un utente con questo nome."), 409)
         con.execute("UPDATE utenti SET nome=? WHERE id=?", (nome, u["id"]))
     return {"ok": True, "nome": nome}
 
@@ -257,7 +257,7 @@ def api_utente_elimina(rq):
     with connetti() as con:
         u = get_utente(con, uid)
         if rq.json().get("conferma") != u["nome"]:
-            raise ErroreRichiesta("Per eliminare scrivi il nome esatto dell'utente nella conferma.")
+            raise ErroreRichiesta(T("Per eliminare scrivi il nome esatto dell'utente nella conferma."))
         con.execute("DELETE FROM utenti WHERE id=?", (uid,))
     cancella_cartelle_utente(uid)
     return {"ok": True}
@@ -270,7 +270,7 @@ def api_avatar_leggi(rq):
         get_utente(con, uid)
     p = percorso_avatar(uid)
     if not p.exists():
-        raise ErroreRichiesta("Nessuna immagine impostata.", 404)
+        raise ErroreRichiesta(T("Nessuna immagine impostata."), 404)
     return RispostaFile(p.read_bytes(), "image/jpeg",
                         {"Cache-Control": "private, max-age=86400", "Cross-Origin-Resource-Policy": "same-origin"})
 
@@ -330,16 +330,16 @@ def _controlla_posizione(d, parziale=False):
     out = {}
     if "vista" in d or not parziale:
         if d.get("vista") not in ("fronte", "retro"):
-            raise ErroreRichiesta("La vista deve essere 'fronte' o 'retro'.")
+            raise ErroreRichiesta(T("La vista deve essere 'fronte' o 'retro'."))
         out["vista"] = d["vista"]
     for c in ("x", "y"):
         if c in d or not parziale:
             try:
                 v = float(d.get(c))
             except (TypeError, ValueError):
-                raise ErroreRichiesta("Posizione non valida.")
+                raise ErroreRichiesta(T("Posizione non valida."))
             if not (0.0 <= v <= 1.0):
-                raise ErroreRichiesta("Posizione fuori dalla mappa.")
+                raise ErroreRichiesta(T("Posizione fuori dalla mappa."))
             out[c] = round(v, 5)
     return out
 
@@ -426,7 +426,7 @@ def api_foto_modifica(rq):
     if "scattata_il" in d:
         campi["scattata_il"] = data_valida(d["scattata_il"])
     if "diametro_mm" in d:
-        campi["diametro_mm"] = numero_o_vuoto(d["diametro_mm"], 0.5, 100, "Diametro (mm)")
+        campi["diametro_mm"] = numero_o_vuoto(d["diametro_mm"], 0.5, 100, T("Diametro (mm)"))
     if "tipo" in d and d["tipo"] in ("normale", "dermoscopica"):
         campi["tipo"] = d["tipo"]
     if "note" in d:
@@ -444,7 +444,7 @@ def api_foto_elimina(rq):
     with connetti() as con:
         f = get_foto(con, fid)
         if f["stato_analisi"] in ("in_corso", "in_coda"):
-            raise ErroreRichiesta("L'analisi di questa foto è in corso: attendi che finisca.", 409)
+            raise ErroreRichiesta(T("L'analisi di questa foto è in corso: attendi che finisca."), 409)
         cancella_file_foto(f, f["utente_id"])
         con.execute("DELETE FROM foto WHERE id=?", (fid,))
     return {"ok": True}
@@ -460,7 +460,7 @@ def api_foto_file(rq):
     else:
         p = percorso_foto(f)
         if p is None:
-            raise ErroreRichiesta("File della foto non trovato.", 404)
+            raise ErroreRichiesta(T("File della foto non trovato."), 404)
         if p.suffix.lower() in (".tif", ".tiff"):                       # i browser non mostrano i TIFF
             dati, mime = miniatura(fid, f["utente_id"], f, 1600)
         else:
@@ -497,9 +497,9 @@ def _coordinate(rq):
         lat = float(rq.q("lat") or imp.get("lat"))
         lon = float(rq.q("lon") or imp.get("lon"))
     except (TypeError, ValueError):
-        raise ErroreRichiesta("Posizione non impostata: scegli una città o usa 'Rileva la mia posizione'.")
+        raise ErroreRichiesta(T("Posizione non impostata: scegli una città o usa 'Rileva la mia posizione'."))
     if not (-90 <= lat <= 90 and -180 <= lon <= 180):
-        raise ErroreRichiesta("Coordinate non valide.")
+        raise ErroreRichiesta(T("Coordinate non valide."))
     return lat, lon
 
 
@@ -526,30 +526,34 @@ def api_impostazioni_salva(rq):
     if "openweather_key" in d and d["openweather_key"] is not None:
         k = str(d["openweather_key"]).strip()
         if k and not re.fullmatch(r"[A-Za-z0-9]{8,64}", k):
-            raise ErroreRichiesta("La chiave OpenWeather contiene caratteri non validi (di solito sono 32 lettere/numeri).")
+            raise ErroreRichiesta(T("La chiave OpenWeather contiene caratteri non validi (di solito sono 32 lettere/numeri)."))
         nuove["openweather_key"] = k
     if "fonte_uv" in d:
         if d["fonte_uv"] not in ("open-meteo", "openweather"):
-            raise ErroreRichiesta("Fonte dell'indice UV non valida.")
+            raise ErroreRichiesta(T("Fonte dell'indice UV non valida."))
         nuove["fonte_uv"] = d["fonte_uv"]
     if "usa_skinsense" in d:
         nuove["usa_skinsense"] = bool(d["usa_skinsense"])
     if "avvertenze_accettate" in d:
         if d["avvertenze_accettate"] not in ("", AVVERTENZE_VERSIONE):
-            raise ErroreRichiesta("Versione dell'avviso non valida.")
+            raise ErroreRichiesta(T("Versione dell'avviso non valida."))
         nuove["avvertenze_accettate"] = d["avvertenze_accettate"]
     for c in ("lat", "lon"):
         if c in d:
             try:
                 nuove[c] = None if d[c] in (None, "") else round(float(d[c]), 2)       # ~1 km: all'indice UV basta e si invia meno
             except (TypeError, ValueError):
-                raise ErroreRichiesta("Coordinate non valide.")
+                raise ErroreRichiesta(T("Coordinate non valide."))
     if "localita" in d:
         nuove["localita"] = str(d["localita"] or "").strip()[:120]
+    if "lingua" in d:
+        if d["lingua"] != "auto" and d["lingua"] not in LINGUE:
+            raise ErroreRichiesta(T("Lingua non supportata."))
+        nuove["lingua"] = d["lingua"]
     if "ncbi_email" in d:
         e = str(d["ncbi_email"] or "").strip()[:120]
         if e and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", e):
-            raise ErroreRichiesta("Email non valida.")
+            raise ErroreRichiesta(T("Email non valida."))
         nuove["ncbi_email"] = e
     salva_impostazioni(nuove)
     _cache_uv.clear()
@@ -560,7 +564,7 @@ def api_prova_owm(rq):
     imp = leggi_impostazioni()
     chiave = (imp.get("openweather_key") or "").strip()
     if not chiave:
-        raise ErroreRichiesta("Prima salva una chiave OpenWeather.")
+        raise ErroreRichiesta(T("Prima salva una chiave OpenWeather."))
     lat, lon = imp.get("lat"), imp.get("lon")
     if lat is None or lon is None:
         lat, lon = 45.07, 7.69                       # in mancanza d'altro provo con Torino
@@ -593,7 +597,7 @@ def api_lett_temi(rq):
     temi = []
     ordine = list(TEMI_LETTERATURA.keys()) + ["personale"]
     titoli = {t: i["titolo"] for t, i in TEMI_LETTERATURA.items()}
-    titoli["personale"] = "Scelti per te (in base a profilo e sede dei nei)"
+    titoli["personale"] = T("Scelti per te (in base a profilo e sede dei nei)")
     for t in ordine:
         elenco = [{"id": k, "titolo": v["titolo"]} for k, v in sezioni.items() if v["tema"] == t]
         if elenco:
@@ -605,7 +609,7 @@ def api_lett_sezione(rq):
     sezioni = _sezioni_per_utente(a_intero(rq.q("utente"), 0))
     s = sezioni.get(rq.q("id"))
     if s is None:
-        raise ErroreRichiesta("Sezione sconosciuta.", 404)
+        raise ErroreRichiesta(T("Sezione sconosciuta."), 404)
     dati = pubmed_cerca(s["termine"], 5, s["ordina"], rq.q("forza") == "1")
     return dict(dati, titolo=s["titolo"], id=rq.q("id"))
 
@@ -613,7 +617,7 @@ def api_lett_sezione(rq):
 def api_lett_cerca(rq):
     q = re.sub(r"[^\w\s\-\*\"'\.]", " ", rq.q("q"), flags=re.UNICODE).strip()[:200]
     if len(q) < 3:
-        raise ErroreRichiesta("Scrivi almeno 3 caratteri.")
+        raise ErroreRichiesta(T("Scrivi almeno 3 caratteri."))
     dati = pubmed_cerca(f"({q}) AND melanoma[tiab]", 8, "relevance", rq.q("forza") == "1")
     return dict(dati, titolo=f"Risultati per: {q}")
 
@@ -625,7 +629,7 @@ def api_genetica_geni(rq):
 def api_genetica_gene(rq):
     g = next((x for x in GENI_MELANOMA if x["gene"] == rq.q("nome")), None)
     if g is None:
-        raise ErroreRichiesta("Gene non presente nell'elenco.", 404)
+        raise ErroreRichiesta(T("Gene non presente nell'elenco."), 404)
     dati = pubmed_cerca(g["termine"], 3, "relevance", rq.q("forza") == "1")
     return dict(dati, gene=g["gene"])
 
@@ -733,12 +737,23 @@ def chiave_uguale(a, b):
     return hmac.compare_digest(str(a).encode("utf-8", "replace"), str(b).encode("utf-8", "replace"))
 
 
+_ACCESSO_NEGATO_TESTI = (
+    ("it", "Accesso non autorizzato", "Questa pagina funziona solo dalla finestra di NeoTracker. Chiudi questa scheda e apri l'app "
+                                      "dall'icona <b>NeoTracker</b> sul Desktop."),
+    ("en", "Access denied", "This page only works from the NeoTracker window. Close this tab and open the app "
+                            "from the <b>NeoTracker</b> icon on your Desktop."),
+    ("fr", "Accès non autorisé", "Cette page ne fonctionne que depuis la fenêtre de NeoTracker. Fermez cet onglet et ouvrez "
+                                 "l'application avec l'icône <b>NeoTracker</b> du Bureau."),
+    ("de", "Zugriff nicht erlaubt", "Diese Seite funktioniert nur im NeoTracker-Fenster. Schließen Sie diesen Tab und starten Sie "
+                                    "die App über das <b>NeoTracker</b>-Symbol auf dem Desktop."),
+    ("es", "Acceso no autorizado", "Esta página solo funciona desde la ventana de NeoTracker. Cierra esta pestaña y abre la "
+                                   "aplicación desde el icono <b>NeoTracker</b> del Escritorio."),
+)
 PAGINA_ACCESSO_NEGATO = (
-    "<!doctype html><html lang='it'><meta charset='utf-8'><title>Accesso non autorizzato</title>"
+    "<!doctype html><html lang='it'><meta charset='utf-8'><title>" + " · ".join(t for _, t, _ in _ACCESSO_NEGATO_TESTI) + "</title>"
     "<body style='font-family:Segoe UI,Arial,sans-serif;max-width:34em;margin:4em auto;padding:0 1em;color:#222'>"
-    "<h1>Accesso non autorizzato</h1>"
-    "<p>Questa pagina funziona solo dalla finestra di NeoTracker. Chiudi questa scheda e apri l'app "
-    "dall'icona <b>NeoTracker</b> sul Desktop.</p></body></html>").encode("utf-8")
+    + "".join(f"<section lang='{lg}'><h1>{tit}</h1><p>{txt}</p></section>" for lg, tit, txt in _ACCESSO_NEGATO_TESTI)
+    + "</body></html>").encode("utf-8")
 
 # Intestazioni di sicurezza aggiunte a OGNI risposta.
 INTESTAZIONI_SICUREZZA = {
@@ -814,10 +829,10 @@ class Gestore(BaseHTTPRequestHandler):
         affidabile di "finestra chiusa"; i battiti e l'"addio" della pagina restano come rinforzo."""
         id_pagina = (query.get("id") or [""])[0]
         if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", id_pagina):
-            return self._errore(400, "Identificativo di pagina non valido.")
+            return self._errore(400, T("Identificativo di pagina non valido."))
         with _blocco_presenze:                                      # un tetto ai collegamenti aperti: niente "inondazioni"
             if _presenze_aperte[0] >= MAX_PRESENZE:
-                return self._errore(429, "Troppi collegamenti aperti.")
+                return self._errore(429, T("Troppi collegamenti aperti."))
             _presenze_aperte[0] += 1
         try:
             self._presenza_aperta(id_pagina)
@@ -858,15 +873,15 @@ class Gestore(BaseHTTPRequestHandler):
     def _gestisci(self):
         try:
             if not self._host_ok():
-                return self._errore(403, "Indirizzo non ammesso.")
+                return self._errore(403, T("Indirizzo non ammesso."))
             if not self._origine_ok():
-                return self._errore(403, "Origine non ammessa.")
+                return self._errore(403, T("Origine non ammessa."))
             if len(self.path) > 2000:
-                return self._errore(414, "Indirizzo troppo lungo.")
+                return self._errore(414, T("Indirizzo troppo lungo."))
             url = urllib.parse.urlsplit(self.path)
             percorso, query = url.path, urllib.parse.parse_qs(url.query, keep_blank_values=True)
             if self.command in ("POST", "PUT", "PATCH", "DELETE") and self.headers.get("X-NeoTracker") != "1":
-                return self._errore(403, "Richiesta non autorizzata.")
+                return self._errore(403, T("Richiesta non autorizzata."))
 
             # ---- chiave di sessione (vedi 6c-bis) ----
             if percorso not in PERCORSI_LIBERI:
@@ -882,7 +897,7 @@ class Gestore(BaseHTTPRequestHandler):
                     if self.command == "GET" and not percorso.startswith(("/api/", "/foto/")):
                         return self._invia(403, PAGINA_ACCESSO_NEGATO, "text/html; charset=utf-8",
                                            {"Content-Security-Policy": CSP})
-                    return self._errore(403, "Accesso non autorizzato.")
+                    return self._errore(403, T("Accesso non autorizzato."))
 
             if self.command == "GET" and percorso == "/api/presenza":
                 return self._presenza(query)
@@ -890,8 +905,11 @@ class Gestore(BaseHTTPRequestHandler):
             if self.command == "GET" and not percorso.startswith(("/api/", "/foto/")):
                 voce = WEB_FILES.get("/index.html" if percorso == "/" else percorso)
                 if voce is None:
-                    return self._errore(404, "Pagina non trovata.")
+                    return self._errore(404, T("Pagina non trovata."))
                 mime, dati = voce
+                if mime.startswith("text/html"):
+                    scelta = leggi_impostazioni().get("lingua")
+                    dati = dati.replace(b"@@LINGUA@@", (scelta if scelta in LINGUE else "auto").encode("ascii"))
                 extra = {"Content-Security-Policy": CSP} if mime.startswith("text/html") else {}
                 return self._invia(200, dati, mime, extra)
 
@@ -909,8 +927,8 @@ class Gestore(BaseHTTPRequestHandler):
                     return self._invia(200, ris.dati, ris.mime, dict(ris.extra, **{"Content-Security-Policy": CSP_FILE}))
                 return self._json(200, ris)
             if trovato_percorso:
-                return self._errore(405, "Operazione non consentita su questo indirizzo.")
-            return self._errore(404, "Indirizzo sconosciuto.")
+                return self._errore(405, T("Operazione non consentita su questo indirizzo."))
+            return self._errore(404, T("Indirizzo sconosciuto."))
         except ErroreRichiesta as e:
             self._errore(e.codice, str(e))
         except ErroreServizio as e:
@@ -920,14 +938,14 @@ class Gestore(BaseHTTPRequestHandler):
         except Exception as e:                         # errore nostro: lo mostro in console e lo segnalo al browser
             traceback.print_exc()                      # i dettagli restano nel registro (neotracker.log), non nella risposta
             try:
-                self._errore(500, "Errore interno. I dettagli sono nel file neotracker.log nella cartella dei dati.")
+                self._errore(500, T("Errore interno. I dettagli sono nel file neotracker.log nella cartella dei dati."))
             except Exception:
                 pass
 
     do_GET = do_POST = do_PUT = do_PATCH = do_DELETE = _gestisci
 
     def do_HEAD(self):
-        self._errore(405, "Non consentito.")
+        self._errore(405, T("Non consentito."))
 
     def do_OPTIONS(self):
-        self._errore(403, "Non consentito.")
+        self._errore(403, T("Non consentito."))

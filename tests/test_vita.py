@@ -31,7 +31,7 @@ programma.write_text(testo.replace("PORTA = 8750", f"PORTA = {PORTA}"), encoding
 # L'avviso iniziale ("non è un dispositivo medico") è già accettato: qui si prova il ciclo di vita, non l'avviso
 # (che ha la sua prova in e2e.py).
 dati.mkdir(parents=True, exist_ok=True)
-(dati / "impostazioni.json").write_text(json.dumps({"avvertenze_accettate": "1"}), encoding="utf-8")
+(dati / "impostazioni.json").write_text(json.dumps({"avvertenze_accettate": "1", "lingua": "it"}), encoding="utf-8")
 
 registro = tmp / "browser_chiamato.txt"
 finto = tmp / "finto_browser.sh"
@@ -92,11 +92,12 @@ def token():
 
 def nuovo_contesto(chrome):
     """Un browser pulito che già possiede il cookie di sessione (per le pagine che non provano la consegna della chiave)."""
-    c = chrome.new_context()
+    c = chrome.new_context(locale="it-IT")
     c.add_cookies([{"name": "nt_sessione", "value": token(), "url": URL}])
     return c
 
 
+# Il browser di prova parla italiano: con la lingua "automatica" l'interfaccia segue il browser, e qui si cercano testi italiani.
 with sync_playwright() as pw:
     chrome = pw.chromium.launch(executable_path=os.environ.get("NEOTRACKER_TEST_CHROME", "/usr/bin/google-chrome"), args=["--no-sandbox"])
 
@@ -114,7 +115,7 @@ with sync_playwright() as pw:
              (os.name == "nt" or stat.S_IMODE((dati / "sessione.token").stat().st_mode) == 0o600))
     verifica("la finestra viene aperta con l'indirizzo ...?avvio=CHIAVE", f"--app={URL}/?avvio={token()}" in r, r)
     chiave_primo_avvio = token()
-    ctx = chrome.new_context()
+    ctx = chrome.new_context(locale="it-IT")
     pagina = ctx.new_page()
     errori = []
     pagina.on("pageerror", lambda e: errori.append(str(e)))
@@ -124,7 +125,7 @@ with sync_playwright() as pw:
     ck = [c for c in ctx.cookies() if c["name"] == "nt_sessione"]
     verifica("cookie di sessione HttpOnly + SameSite=Strict", len(ck) == 1 and ck[0]["httpOnly"] and ck[0]["sameSite"] == "Strict", str(ck))
     verifica("il JavaScript della pagina NON vede il cookie", "nt_sessione" not in pagina.evaluate("document.cookie"))
-    anonimo = chrome.new_context()
+    anonimo = chrome.new_context(locale="it-IT")
     pa = anonimo.new_page()
     risp = pa.goto(URL + "/")
     verifica("un secondo browser senza chiave riceve 403 e non vede l'app", risp.status == 403 and "Accesso non autorizzato" in pa.content() and pa.title() != "NeoTracker")
