@@ -1,12 +1,12 @@
 ---
-name: Idea o richiesta
-about: Proponi una funzione
+name: Idea or request
+about: Suggest a feature
 labels: enhancement
 ---
 
-**Che problema vuoi risolvere?**
+**What problem do you want to solve?**
 
-**Come lo immagini?**
+**How do you picture it?**
 
-> NeoTracker non è un dispositivo medico: non verranno accettate funzioni presentate come diagnosi o screening,
-> né telemetria o invio di dati a server non dichiarati.
+> NeoTracker is not a medical device: features presented as diagnosis or screening will not be accepted,
+> nor will telemetry or sending data to undeclared servers.

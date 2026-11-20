@@ -9,5 +9,5 @@
 *.ps1  text eol=crlf
 *.png  binary
 *.ico  binary
-# il programma generato non si "diffa" a occhio: si rigenera con build.py
+# the generated program is not meant to be reviewed by eye: it is regenerated with build.py
 neotracker.py linguist-generated=true

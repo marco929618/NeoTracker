@@ -1,11 +1,11 @@
 @echo off
-rem Doppio clic: apre NeoTracker nella sua finestra (senza finestra nera).
-rem Trascinando una foto sopra questo file si ottiene invece l'analisi rapida di quella foto.
+rem Double-click: opens NeoTracker in its own window (no black console window).
+rem Dragging a photo onto this file runs the quick analysis of that photo instead.
 if not "%~1"=="" goto rapida
 cd /d "%~dp0"
 where pyw > NUL 2> NUL && goto conpyw
 where pythonw > NUL 2> NUL && goto conpythonw
-rem Nessun interprete "senza finestra nera" trovato: uso quello normale.
+rem No "windowless" interpreter found: use the normal one.
 call "%~dp0NeoTracker.bat"
 goto :eof
 :conpyw

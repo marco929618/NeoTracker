@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 > NUL
-rem Trascina una foto SOPRA questo file per analizzarla; oppure fai doppio clic e scegli la foto nella finestra.
+rem Drag a photo ONTO this file to analyse it; or double-click it and pick the photo in the window.
 cd /d "%~dp0"
 where py > NUL 2> NUL && goto conpy
 python melanoma_batch.py --foto "%~1"

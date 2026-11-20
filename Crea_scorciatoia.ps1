@@ -1,14 +1,14 @@
-# Crea sul Desktop l'icona "NeoTracker" che apre il programma nella sua finestra, senza finestra nera.
-# Si lancia con un doppio clic su Crea_scorciatoia_Desktop.bat (non serve aprire questo file).
+# Creates the "NeoTracker" icon on the Desktop; it opens the program in its own window, with no black console window.
+# Run it by double-clicking Crea_scorciatoia_Desktop.bat (you do not need to open this file).
 $ErrorActionPreference = 'Stop'
 
-# La cartella in cui si trova questo file (li' c'e' anche neotracker.py).
+# The folder this file is in (neotracker.py is there too).
 $cartella  = $PSScriptRoot
 $programma = Join-Path $cartella 'neotracker.py'
 $icona     = Join-Path $cartella 'Analizza_neo.ico'
-if (-not (Test-Path $programma)) { throw "Manca neotracker.py in $cartella" }
+if (-not (Test-Path $programma)) { throw "neotracker.py is missing in $cartella" }
 
-# 1) Cerco il Python "senza finestra nera": pyw.exe (installato insieme a py.exe) oppure pythonw.exe.
+# 1) Look for the "windowless" Python: pyw.exe (installed together with py.exe) or pythonw.exe.
 $esegui = $null
 $argomenti = $null
 $pyw = Get-Command pyw.exe -ErrorAction SilentlyContinue
@@ -23,10 +23,10 @@ if ($pyw) {
     }
 }
 if (-not $esegui) {
-    throw "Non trovo pyw.exe ne' pythonw.exe: Python e' installato? (https://www.python.org/downloads/)"
+    throw "Neither pyw.exe nor pythonw.exe was found: is Python installed? (https://www.python.org/downloads/)"
 }
 
-# 2) Creo il collegamento sul Desktop (anche se il Desktop e' sincronizzato con OneDrive).
+# 2) Create the shortcut on the Desktop (also when the Desktop is synchronised with OneDrive).
 $desktop = [Environment]::GetFolderPath('Desktop')
 $percorsoLnk = Join-Path $desktop 'NeoTracker.lnk'
 $shell = New-Object -ComObject WScript.Shell
@@ -35,18 +35,18 @@ $lnk.TargetPath = $esegui
 $lnk.Arguments = $argomenti
 $lnk.WorkingDirectory = $cartella
 if (Test-Path $icona) { $lnk.IconLocation = "$icona,0" }
-$lnk.Description = 'NeoTracker: mappa dei nei, storico foto, analisi, letteratura, indice UV'
+$lnk.Description = 'NeoTracker: mole map, photo history, analysis, literature, UV index'
 $lnk.Save()
-Write-Host ('Icona creata: ' + $percorsoLnk)
-Write-Host ('  avvia: ' + $esegui + ' ' + $argomenti)
+Write-Host ('Icon created: ' + $percorsoLnk)
+Write-Host ('  launches: ' + $esegui + ' ' + $argomenti)
 
-# 3) Se esiste la vecchia icona "Analizza neo" (quella che apriva la finestra nera), la tolgo
-#    SOLO se punta davvero a Analizza_neo.bat: cosi' non resta un doppione.
+# 3) If the old "Analizza neo" icon exists (the one that opened the black console window), remove it
+#    ONLY if it really points to Analizza_neo.bat: this way no duplicate is left.
 $vecchio = Join-Path $desktop 'Analizza neo.lnk'
 if (Test-Path $vecchio) {
     $v = $shell.CreateShortcut($vecchio)
     if ($v.TargetPath -like '*Analizza_neo.bat') {
         Remove-Item $vecchio -Force
-        Write-Host 'Tolta la vecchia icona "Analizza neo" (ora c''e'' "NeoTracker").'
+        Write-Host 'Removed the old "Analizza neo" icon ("NeoTracker" replaces it).'
     }
 }
