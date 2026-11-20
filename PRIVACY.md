@@ -1,68 +1,63 @@
-# Privacy e protezione dei dati / Privacy and data protection
+# Privacy and data protection
 
-**In breve:** NeoTracker gira **solo sul tuo computer**. Non ha account, non ha server degli sviluppatori, non
-raccoglie statistiche né telemetria. I dati restano nella tua cartella. Escono dal computer solo le richieste
-elencate qui sotto, che avvengono **solo se usi la funzione corrispondente**.
+**In short:** NeoTracker runs **only on your computer**. It has no accounts, no server operated by the developers, and
+it collects no statistics or telemetry. Your data stays in your folder. Only the requests listed below leave your
+computer, and they happen **only if you use the matching feature**.
 
-*In short: NeoTracker runs only on your computer, has no accounts, no developer-operated server and no
-telemetry. Your data stays in your folder. Only the requests listed below leave your machine, and only when
-you use the matching feature.*
+## Data stored on your computer
 
-## Dati conservati sul tuo computer
+In the data folder (default: `%USERPROFILE%\melanoma-repos\NeoTracker_dati`, can be changed) you will find:
 
-Nella cartella dei dati (predefinita: `%USERPROFILE%\melanoma-repos\NeoTracker_dati`, modificabile) trovi:
-
-| Che cosa | Dove | Note |
+| What | Where | Notes |
 |---|---|---|
-| Utenti, profilo (sesso, età, fototipo, familiarità, storia personale, note), nei e posizioni | `neotracker.db` (SQLite) | Sono **dati sulla salute**: categoria particolare ai sensi dell'art. 9 GDPR |
-| Foto dei nei (originali **non modificati**, miniature) | `foto/`, `miniature/` | Gli originali possono contenere metadati (GPS, modello del telefono) |
-| Immagine personale (facoltativa) | `avatar/` | Ritagliata a 256×256, **senza metadati** |
-| Rapporti delle analisi | `rapporti/` | |
-| Impostazioni, eventuale chiave OpenWeather, posizione approssimata (≈ 1 km) | `impostazioni.json` | File leggibile solo dal proprietario (su Linux/Mac) |
-| Chiave di sessione temporanea | `sessione.token` | Si cancella alla chiusura |
-| Registro tecnico | `neotracker.log` | Solo messaggi del programma, niente dati sanitari |
+| Users, profile (sex, age, phototype, family history, personal history, notes), moles and positions | `neotracker.db` (SQLite) | This is **health data**: a special category under Art. 9 GDPR |
+| Mole photos (**unmodified** originals, thumbnails) | `foto/`, `miniature/` | The originals may contain metadata (GPS, phone model) |
+| Personal picture (optional) | `avatar/` | Cropped to 256×256, **without metadata** |
+| Analysis reports | `rapporti/` | |
+| Settings, any OpenWeather key, approximate location (≈ 1 km) | `impostazioni.json` | File readable only by its owner (on Linux/Mac) |
+| Temporary session key | `sessione.token` | Deleted when the program is closed |
+| Technical log | `neotracker.log` | Only program messages, no health data |
 
-**Non cifrati:** i file non sono cifrati dal programma. Per proteggerli usa la cifratura del disco
-(BitLocker su Windows) e un account utente con password. Chi può aprire la tua cartella può leggere i tuoi dati.
+**Not encrypted:** the program does not encrypt the files. To protect them use disk encryption (BitLocker on
+Windows) and a user account with a password. Anyone who can open your folder can read your data.
 
-**Backup e cancellazione:** per fare il backup copia la cartella dei dati. Per cancellare un utente usa
-«Elimina» nella schermata utenti (rimuove profilo, nei, foto, miniature, rapporti e immagine personale). Per
-cancellare tutto, elimina la cartella dei dati.
+**Backup and deletion:** to back up, copy the data folder. To delete a user, use "Delete" on the users screen (it
+removes profile, moles, photos, thumbnails, reports and personal picture). To delete everything, remove the data folder.
 
-## Richieste verso internet
+## Requests to the internet
 
-| Servizio | Quando | Che cosa viene inviato | Note |
+| Service | When | What is sent | Notes |
 |---|---|---|---|
-| **Open-Meteo** (api.open-meteo.com, geocoding-api.open-meteo.com) | Pagina «Indice UV», o ricerca di una città | Coordinate arrotondate a ~1 km, oppure il nome della città cercata. Come ogni richiesta web, il servizio vede il tuo indirizzo IP | Predefinito. Uso **non commerciale**, dati CC BY 4.0 |
-| **OpenWeather** | Solo se lo scegli nelle Impostazioni **e** inserisci la tua chiave | Coordinate arrotondate, la tua chiave API | Facoltativo |
-| **ipwho.is** | Solo se premi «Stima dall'indirizzo internet» e confermi | Il servizio vede il tuo indirizzo IP | Facoltativo; in alternativa usa la posizione del browser o cerca la città |
-| **PubMed / NCBI E-utilities** (eutils.ncbi.nlm.nih.gov) | Pagine «Letteratura» e «Genetica» | Solo i **termini di ricerca** (mai dati personali). Parametri `tool=NeoTracker` e, se la inserisci, la tua email | Massimo 3 richieste/secondo |
-| **SkinSense** (servizio online di terzi su Hugging Face) | **Solo se lo attivi** nelle Impostazioni | I **pixel della foto**, ricodificata da zero (senza EXIF/GPS), ridotta a 1600 px | **La foto lascia il computer.** Non controlliamo il servizio né come tratta l'immagine. Disattivato di default |
+| **Open-Meteo** (api.open-meteo.com, geocoding-api.open-meteo.com) | "UV index" page, or when searching for a city | Coordinates rounded to ~1 km, or the name of the city searched. Like any web request, the service sees your IP address | Default. **Non-commercial** use, data CC BY 4.0 |
+| **OpenWeather** | Only if you choose it in Settings **and** enter your own key | Rounded coordinates, your API key | Optional |
+| **ipwho.is** | Only if you press "Estimate from the internet address" and confirm | The service sees your IP address | Optional; alternatively use the browser location or search for the city |
+| **PubMed / NCBI E-utilities** (eutils.ncbi.nlm.nih.gov) | "Literature" and "Genetics" pages | Only the **search terms** (never personal data). Parameters `tool=NeoTracker` and, if you enter it, your email | At most 3 requests/second |
+| **SkinSense** (third-party online service on Hugging Face) | **Only if you turn it on** in Settings | The **photo pixels**, re-encoded from scratch (no EXIF/GPS), reduced to 1600 px | **The photo leaves your computer.** We do not control the service or how it handles the image. Off by default |
 
-La posizione del browser (geolocalizzazione) è richiesta solo premendo «Rileva la mia posizione» e solo
-dopo il permesso del browser/Windows.
+The browser location (geolocation) is requested only when you press "Detect my location" and only after the
+browser/Windows permission.
 
-Nessuna foto, nessun dato di profilo e nessun nome di utente viene mai inviato a servizi diversi da SkinSense
-(solo la foto, e solo se attivo).
+No photo, no profile data and no user name is ever sent to services other than SkinSense (only the photo, and only
+when it is on).
 
-## Sicurezza dei dati sul computer
+## Security of the data on the computer
 
-Vedi [SECURITY.md](SECURITY.md): il programma ascolta solo su `127.0.0.1`, richiede una chiave di sessione
-casuale, usa intestazioni di sicurezza restrittive e non carica risorse da altri siti.
+See [SECURITY.md](SECURITY.md): the program listens only on `127.0.0.1`, requires a random session key, uses
+restrictive security headers and does not load resources from other sites.
 
-## Ruoli ai sensi del GDPR (informazione generale, non consulenza legale)
+## Roles under the GDPR (general information, not legal advice)
 
-- **Uso personale/domestico** (tu sul tuo PC, per te o per i tuoi familiari): il GDPR non si applica ai
-  trattamenti effettuati da una persona fisica per attività a carattere esclusivamente personale o domestico
-  (art. 2, par. 2, lett. c). Se conservi dati di **altre persone**, assicurati del loro consenso.
-- **Gli autori di NeoTracker non trattano i tuoi dati**: non li ricevono né vi hanno accesso, quindi non sono
-  titolari né responsabili del trattamento per l'uso personale.
-- **Uso professionale/organizzativo** (ambulatorio, azienda, ricerca con partecipanti): chi lo adotta diventa
-  **titolare del trattamento** e deve valutare base giuridica (per dati sanitari: art. 9), informativa, DPIA,
-  misure di sicurezza (cifratura, controllo accessi, backup), ruolo dei servizi esterni e, per la ricerca,
-  parere del comitato etico e, se applicabile, il Regolamento MDR. NeoTracker non è progettato per questo.
+- **Personal/household use** (you on your own PC, for yourself or your family): the GDPR does not apply to processing
+  carried out by a natural person in the course of a purely personal or household activity (Art. 2(2)(c)). If you
+  store data about **other people**, make sure you have their consent.
+- **The authors of NeoTracker do not process your data**: they neither receive it nor have access to it, so they are
+  neither controller nor processor for personal use.
+- **Professional/organisational use** (clinic, company, research with participants): whoever adopts it becomes the
+  **controller** and must assess the legal basis (for health data: Art. 9), the privacy notice, the DPIA, security
+  measures (encryption, access control, backups), the role of the external services and, for research, the ethics
+  committee opinion and, where applicable, the MDR. NeoTracker is not designed for this.
 
-## Contatti
+## Contact
 
-Domande sulla privacy: apri una *Discussion* o scrivi al maintainer indicato nel profilo GitHub del
-repository. Vulnerabilità: vedi [SECURITY.md](SECURITY.md) (non usare le Issue pubbliche).
+Privacy questions: open a *Discussion* or write to the maintainer listed on the GitHub profile of the repository.
+Vulnerabilities: see [SECURITY.md](SECURITY.md) (do not use public Issues).
