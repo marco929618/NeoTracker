@@ -1,4 +1,4 @@
-# Servizi finti (OpenWeather, Open-Meteo, PubMed, ipwho.is) per provare NeoTracker senza internet.
+# Mock services (OpenWeather, Open-Meteo, PubMed, ipwho.is) to test NeoTracker without internet.
 import json
 import sys
 import threading
@@ -6,8 +6,8 @@ import time
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-CHIAVE_BUONA = "abcdef0123456789abcdef0123456789"      # abilitata solo per One Call 3.0
-CHIAVE_V4 = "44444444444444444444444444444444"          # abilitata solo per One Call 4.0
+CHIAVE_BUONA = "abcdef0123456789abcdef0123456789"      # enabled only for One Call 3.0
+CHIAVE_V4 = "44444444444444444444444444444444"          # enabled only for One Call 4.0
 CHIAMATE = []
 
 XML_PUBMED = """<?xml version="1.0" encoding="UTF-8"?>
@@ -47,7 +47,7 @@ class H(BaseHTTPRequestHandler):
         if u.path == "/data/3.0/onecall":
             if q.get("appid", [""])[0] != CHIAVE_BUONA:
                 return self._j({"cod": 401, "message": "Invalid API key"}, 401)
-            t0 = 1762560000   # 2025-11-08 00:00 UTC (valore arbitrario)
+            t0 = 1762560000   # 2025-11-08 00:00 UTC (arbitrary value)
             return self._j({"lat": 45.07, "lon": 7.69, "timezone": "Europe/Rome", "timezone_offset": 3600,
                             "current": {"dt": t0 + 12 * 3600, "uvi": 2.3},
                             "hourly": [{"dt": t0 + 12 * 3600 + 3600 * i, "uvi": max(0, 6 - abs(i - 2) * 1.5)} for i in range(48)],
@@ -68,16 +68,16 @@ class H(BaseHTTPRequestHandler):
         if u.path == "/geo/1.0/direct":
             if q.get("appid", [""])[0] != CHIAVE_BUONA:
                 return self._j({"cod": 401}, 401)
-            return self._j([{"name": "Torino", "lat": 45.0703, "lon": 7.6869, "country": "IT", "state": "Piedmont"}])
+            return self._j([{"name": "Turin", "lat": 45.0703, "lon": 7.6869, "country": "IT", "state": "Piedmont"}])
         if u.path == "/v1/forecast":
             ore = [f"2026-11-08T{h:02d}:00" for h in range(24)] + [f"2026-11-09T{h:02d}:00" for h in range(24)]
             return self._j({"timezone": "Europe/Rome", "current": {"time": "2026-11-08T10:15", "uv_index": 1.9},
                             "hourly": {"time": ore, "uv_index": [max(0, 5 - abs(i - 13) * 0.6) for i in range(48)]},
                             "daily": {"uv_index_max": [4.8, 4.6]}})
         if u.path == "/v1/search":
-            return self._j({"results": [{"name": "Milano", "admin1": "Lombardia", "country_code": "IT", "latitude": 45.46, "longitude": 9.19}]})
+            return self._j({"results": [{"name": "Milan", "admin1": "Lombardy", "country_code": "IT", "latitude": 45.46, "longitude": 9.19}]})
         if u.path == "/":
-            return self._j({"success": True, "latitude": 45.07, "longitude": 7.69, "city": "Torino", "country_code": "IT"})
+            return self._j({"success": True, "latitude": 45.07, "longitude": 7.69, "city": "Turin", "country_code": "IT"})
         if u.path.endswith("esearch.fcgi"):
             if "nessunrisultato" in q.get("term", [""])[0]:
                 return self._j({"esearchresult": {"count": "0", "idlist": []}})
