@@ -1,164 +1,164 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: GPL-3.0-or-later
-# NeoTracker - Copyright (C) 2026 gli autori di NeoTracker.
-# Software libero: puoi ridistribuirlo e/o modificarlo secondo i termini della GNU General Public License
-# versione 3 o successiva. Nessuna garanzia, nemmeno di idoneità a uno scopo (vedi il file LICENSE).
-# NON è un dispositivo medico e non fa diagnosi: vedi DISCLAIMER.md.
+# NeoTracker - Copyright (C) 2026 the NeoTracker authors.
+# Free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+# version 3 or later. No warranty, not even of fitness for a purpose (see the LICENSE file).
+# NOT a medical device and it does not diagnose: see DISCLAIMER.md.
 """
 ==========================================================================================
- melanoma_batch.py  -  UNA FOTO IN INGRESSO, UN RAPPORTO CON TUTTI I METODI IN USCITA
+ melanoma_batch.py  -  ONE PHOTO IN, ONE REPORT WITH ALL THE METHODS OUT
 ==========================================================================================
 
-COSA FA (in parole semplici)
-----------------------------
-Tu gli dai la foto di un neo. Lui, da solo, apre uno dopo l'altro i programmi che hai
-installato con lo script "install_melanoma_repos.ps1", li fa guardare la foto, e alla fine
-scrive un rapporto del tipo:
+WHAT IT DOES (in plain words)
+-----------------------------
+You give it the photo of a mole. By itself, it opens one after the other the programs you
+installed with the "install_melanoma_repos.ps1" script, makes them look at the photo, and in the end
+writes a report like:
 
-    Metodo 1 ha detto che ...
-    Metodo 2 ha detto che ...
-    Metodo 3 ...
+    Method 1 said that ...
+    Method 2 said that ...
+    Method 3 ...
 
-I numeri dei metodi sono gli stessi dello script di installazione e della guida:
+The method numbers are the same as in the installation script and in the guide:
 
-    Metodo 1 = App 1  (DeborahAdedigba / Melanoma-Detection_App)  - 5 modelli TensorFlow
-    Metodo 2 = SkinSense (servizio ONLINE: la foto viene inviata a un server esterno!)
-    Metodo 3 = Melanoma-Detector (VukIG)   - e' solo un prototipo senza modello: nessuna analisi
-    Metodo 4 = vatsal30 / Melanoma-Detection - PyTorch, serve aver addestrato i pesi
-    Metodo 5 = ukalwa (app Android)        - si usa sul telefono, non puo' girare dal PC
+    Method 1 = App 1  (DeborahAdedigba / Melanoma-Detection_App)  - 5 TensorFlow models
+    Method 2 = SkinSense (ONLINE service: the photo is sent to an external server!)
+    Method 3 = Melanoma-Detector (VukIG)   - it is only a prototype without a model: no analysis
+    Method 4 = vatsal30 / Melanoma-Detection - PyTorch, you must have trained the weights
+    Method 5 = ukalwa (Android app)        - used on the phone, it cannot run on the PC
 
-COME SI USA (il modo piu' semplice)
------------------------------------
- 1. Apri questo file con Spyder.
- 2. Premi il tasto PLAY (la freccia verde "Esegui file").
- 3. Si apre una finestra: scegli la foto del neo.
- 4. Aspetta (anche 5-15 minuti la prima volta: i modelli sono grossi).
- 5. Il rapporto compare nella console e viene salvato in una cartella accanto alla foto.
+HOW TO USE IT (the simplest way)
+--------------------------------
+ 1. Open this file with Spyder.
+ 2. Press the PLAY button (the green "Run file" arrow).
+ 3. A window opens: choose the photo of the mole.
+ 4. Wait (even 5-15 minutes the first time: the models are big).
+ 5. The report appears in the console and is saved in a folder next to the photo.
 
-Se preferisci, puoi scrivere il percorso della foto qui sotto, nella riga "FOTO = ...",
-cosi' non ti chiede nulla.
+If you prefer, you can write the path of the photo below, on the "FOTO = ..." line,
+so it does not ask you anything.
 
-Da terminale e' uguale:
-    python melanoma_batch.py --foto "C:\\percorso\\nevo.jpg"
+From a terminal it is the same:
+    python melanoma_batch.py --foto "C:\\path\\mole.jpg"
 
-IMPORTANTE: QUESTO NON E' UNO STRUMENTO MEDICO
-----------------------------------------------
-I programmi usati sono prototipi di ricerca/studio, non validati clinicamente. Possono
-sbagliare in entrambe le direzioni: dare un allarme falso OPPURE dare un "tutto bene" falso.
-Il rapporto serve solo come appunto da portare alla visita dermatologica, mai al posto
-della visita.
+IMPORTANT: THIS IS NOT A MEDICAL TOOL
+-------------------------------------
+The programs used are research/study prototypes, not clinically validated. They can
+be wrong in both directions: raise a false alarm OR give a false "all clear".
+The report is only a note to bring to the dermatology visit, never a replacement
+for the visit.
 
-COME E' FATTO (per chi e' curioso)
-----------------------------------
-I programmi usano librerie diverse che non vanno d'accordo nello stesso ambiente Python
-(TensorFlow da una parte, PyTorch dall'altra). Per questo questo file fa due mestieri:
-  - "DIRETTORE D'ORCHESTRA": sceglie la foto, avvia gli "operai" uno alla volta, raccoglie
-    le risposte e scrive il rapporto. Usa solo cose gia' incluse in Python.
-  - "OPERAI" (worker): lo STESSO file, rilanciato dentro l'ambiente .venv giusto di ciascun
-    progetto (con l'opzione nascosta --worker). Ogni operaio carica i suoi modelli, guarda la
-    foto e scrive la risposta in un piccolo file JSON.
-Se un operaio si rompe, gli altri vanno avanti: il rapporto dira' semplicemente quale ha
-fallito e perche'.
+HOW IT IS BUILT (for the curious)
+---------------------------------
+The programs use different libraries that do not get along in the same Python environment
+(TensorFlow on one side, PyTorch on the other). For this reason this file does two jobs:
+  - "CONDUCTOR": chooses the photo, starts the "workers" one at a time, collects
+    the answers and writes the report. It only uses things already included in Python.
+  - "WORKERS": the SAME file, relaunched inside the right .venv environment of each
+    project (with the hidden --worker option). Each worker loads its models, looks at the
+    photo and writes the answer in a small JSON file.
+If a worker breaks, the others go on: the report will simply say which one
+failed and why.
 """
 
 # ==========================================================================================
-# 1. IMPOSTAZIONI - sono le uniche righe che di solito serve toccare
+# 1. SETTINGS - these are the only lines you usually need to touch
 # ==========================================================================================
 
-# Percorso della foto da analizzare.
-# - Lascialo vuoto ("") e ti si apre una finestra per scegliere la foto.
-# - Oppure scrivi il percorso. La "r" prima delle virgolette serve a Windows: non toglierla.
-#   Esempio:  FOTO = r"C:\Users\TUONOME\Desktop\nevo.jpg"
+# Path of the photo to analyse.
+# - Leave it empty ("") and a window opens to choose the photo.
+# - Or write the path. The "r" before the quotes is needed by Windows: do not remove it.
+# Example:  FOTO = r"C:\Users\YOURNAME\Desktop\nevo.jpg"
 FOTO = r""
 
-# Che tipo di foto e'?
-#   "normale"      = foto fatta con il telefono/macchina fotografica (il caso piu' comune)
-#   "dermoscopica" = foto fatta con un dermatoscopio (lente speciale con luce polarizzata)
-#   "entrambe"     = prova sia i modelli per foto normali sia quelli per dermoscopia
-# I modelli sono addestrati su un tipo o sull'altro: usare il tipo sbagliato da' risposte
-# poco sensate. Nel dubbio lascia "normale".
+# What kind of photo is it?
+# "normale"      = photo taken with a phone/camera (the most common case)
+# "dermoscopica" = photo taken with a dermatoscope (special lens with polarised light)
+# "entrambe"     = try both the models for normal photos and those for dermoscopy
+# The models are trained on one type or the other: using the wrong type gives
+# senseless answers. When in doubt leave "normale".
 TIPO_FOTO = "normale"
 
-# Dove sono state installate le cartelle dei progetti (lo ha deciso lo script di installazione).
-# Path.home() e' la tua cartella personale, es. C:\Users\TUONOME
+# Where the project folders were installed (the installation script decided it).
+# Path.home() is your personal folder, e.g. C:\Users\YOURNAME
 from pathlib import Path
 CARTELLA_REPO = Path.home() / "melanoma-repos"
 
-# Interruttori: metti False per saltare un metodo.
-USA_APP1 = True          # Metodo 1 - App 1 (lavora tutto sul tuo PC)
-USA_SKINSENSE = True     # Metodo 2 - SkinSense. ATTENZIONE: INVIA LA FOTO A UN SERVER ESTERNO
-                         #            (Hugging Face). Prima dell'invio il programma toglie i
-                         #            metadati della foto (posizione GPS, modello del telefono, data).
-                         #            Se non vuoi che la foto esca dal tuo PC, metti False.
-USA_VATSAL = True        # Metodo 4 - vatsal30 (parte solo se esistono i file model_fold_*.bin)
+# Switches: put False to skip a method.
+USA_APP1 = True          # Method 1 - App 1 (works entirely on your PC)
+USA_SKINSENSE = True     # Method 2 - SkinSense. WARNING: IT SENDS THE PHOTO TO AN EXTERNAL SERVER
+                         # (Hugging Face). Before sending, the program removes the
+                         # photo's metadata (GPS position, phone model, date).
+                         # If you do not want the photo to leave your PC, put False.
+USA_VATSAL = True        # Method 4 - vatsal30 (only runs if the model_fold_*.bin files exist)
 
-# Indirizzo del servizio online usato da SkinSense (lo stesso che usa il suo sito web).
+# Address of the online service used by SkinSense (the same one its website uses).
 URL_SKINSENSE = "https://souresh-skin-lesion-detection.hf.space/analyze"
 
-# Quanto aspettare al massimo ciascun metodo, in secondi (poi lo salta e va avanti).
+# How long to wait at most for each method, in seconds (then it skips it and goes on).
 TIMEOUT_APP1 = 40 * 60
 TIMEOUT_SKINSENSE = 6 * 60
 TIMEOUT_VATSAL = 20 * 60
 
 # ==========================================================================================
-# 2. STRUMENTI DI BASE (solo librerie incluse in Python: nessuna installazione necessaria)
+# 2. BASIC TOOLS (only libraries included in Python: no installation needed)
 # ==========================================================================================
 
-import argparse          # legge le opzioni scritte da terminale (--foto, --worker, ...)
-import json              # legge/scrive file JSON (un formato di testo per scambiarsi dati)
-import os                # variabili d'ambiente e percorsi
-import subprocess        # permette di avviare un altro programma Python (gli "operai")
-import sys               # informazioni sul Python in uso
-import textwrap          # manda a capo il testo lungo in modo ordinato
+import argparse          # reads the options written in the terminal (--foto, --worker, ...)
+import json              # reads/writes JSON files (a text format for exchanging data)
+import os                # environment variables and paths
+import subprocess        # lets you start another Python program (the "workers")
+import sys               # information about the Python in use
+import textwrap          # wraps long text neatly
 import time              # misura i tempi e prende data/ora
-import traceback         # descrizione dettagliata degli errori
+import traceback         # detailed description of errors
 
 
 
 def T(testo):
-    """Segna un testo italiano che NeoTracker mostra tradotto nella lingua scelta (dizionari web/i18n_XX.js).
-    Qui non fa nulla: da terminale il rapporto resta in italiano."""
+    """Marks an English text that NeoTracker shows translated in the chosen language (dictionaries web/i18n_XX.js).
+    Here it does nothing: from the terminal the report stays in English."""
     return testo
 
 
-# Nomi delle cartelle create dallo script di installazione.
+# Names of the folders created by the installation script.
 CARTELLA_APP1 = "DeborahAdedigba_Melanoma-Detection_App"
 CARTELLA_VATSAL = "vatsal30_Melanoma-Detection"
 
-# Estensioni di immagine accettate.
+# Accepted image extensions.
 ESTENSIONI_OK = (".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff")
 
-# Le 6 classi dei modelli "foto di pelle" di App 1 (dataset PAD-UFES-20) con il loro
-# significato e un giudizio "grossolano": "attenzione" = lesione maligna o pre-maligna,
-# "benigno" = lesione benigna. E' una classificazione semplificata, solo per il riepilogo.
+# The 6 classes of the App 1 "skin photo" models (PAD-UFES-20 dataset) with their
+# meaning and a "rough" judgement: "attenzione" = malignant or pre-malignant lesion,
+# "benigno" = benign lesion. It is a simplified classification, only for the summary.
 CLASSI_APP1 = {
-    "ACK": (T("cheratosi attinica, lesione pre-cancerosa"), "attenzione"),
-    "BCC": (T("carcinoma basocellulare, tumore della pelle"), "attenzione"),
+    "ACK": (T("actinic keratosis, a pre-cancerous lesion"), "attenzione"),
+    "BCC": (T("basal cell carcinoma, a skin cancer"), "attenzione"),
     "MEL": (T("melanoma"), "attenzione"),
-    "NEV": (T("nevo, cioe' neo benigno"), "benigno"),
-    "SCC": (T("carcinoma squamocellulare, tumore della pelle"), "attenzione"),
-    "SEK": (T("cheratosi seborroica, benigna"), "benigno"),
+    "NEV": (T("naevus, i.e. a benign mole"), "benigno"),
+    "SCC": (T("squamous cell carcinoma, a skin cancer"), "attenzione"),
+    "SEK": (T("seborrhoeic keratosis, benign"), "benigno"),
 }
-ORDINE_CLASSI_APP1 = ["ACK", "BCC", "MEL", "NEV", "SCC", "SEK"]  # ordine usato dai modelli
+ORDINE_CLASSI_APP1 = ["ACK", "BCC", "MEL", "NEV", "SCC", "SEK"]  # order used by the models
 
 
 def nuovo_risultato(nome, stato, etichetta=None, valore=None, prob_mel=None,
                     verdetto=None, nota="", gruppo="", dettaglio=None, secondi=None):
     """
-    Crea la "scheda" di risposta di UN modello. Tutti i metodi usano la stessa scheda,
-    cosi' il direttore d'orchestra sa sempre dove trovare le cose.
+    Creates the answer "card" of ONE model. All methods use the same card,
+    so the conductor always knows where to find things.
 
-    nome       : nome del modello (es. "VGG16")
-    stato      : "ok" (ha risposto) | "errore" (si e' rotto) | "non_disponibile" (mancano
-                 file/ambiente) | "non_eseguibile" (non si puo' fare da PC, per natura)
-    etichetta  : la risposta in parole (es. "NEV (nevo, cioe' neo benigno)")
-    valore     : sicurezza del modello nella sua risposta, da 0 a 1 (None se non esiste)
-    prob_mel   : probabilita' di melanoma da 0 a 1, se il modello la fornisce
-    verdetto   : "attenzione" | "benigno" | "incerto" | None  (serve per il riepilogo)
-    nota       : spiegazione libera, soprattutto in caso di errore
-    gruppo     : sottogruppo dentro il metodo (es. "foto di pelle" / "dermoscopia")
-    dettaglio  : dizionario con altri numeri (probabilita' per classe ecc.)
-    secondi    : tempo impiegato
+    nome       : name of the model (e.g. "VGG16")
+    stato      : "ok" (it answered) | "errore" (it broke) | "non_disponibile" (files/environment
+                 missing) | "non_eseguibile" (cannot be done from a PC, by nature)
+    etichetta  : the answer in words (e.g. "NEV (naevus, i.e. a benign mole)")
+    valore     : confidence of the model in its answer, from 0 to 1 (None if it does not exist)
+    prob_mel   : probability of melanoma from 0 to 1, if the model provides it
+    verdetto   : "attenzione" | "benigno" | "incerto" | None  (used for the summary)
+    nota       : free explanation, mainly in case of error
+    gruppo     : subgroup within the method (e.g. "skin photos" / "dermoscopy")
+    dettaglio  : dictionary with other numbers (probability per class etc.)
+    secondi    : time taken
     """
     return {
         "nome": nome, "stato": stato, "etichetta": etichetta, "valore": valore,
@@ -168,19 +168,19 @@ def nuovo_risultato(nome, stato, etichetta=None, valore=None, prob_mel=None,
 
 
 def salva_json(percorso, dati):
-    """Scrive 'dati' in un file JSON (testo leggibile) con le lettere accentate corrette."""
+    """Writes 'dati' to a JSON file (readable text) with the accented letters correct."""
     with open(percorso, "w", encoding="utf-8") as f:
         json.dump(dati, f, ensure_ascii=False, indent=2)
 
 
 def e_segnaposto_lfs(percorso):
     """
-    I modelli di App 1 sono salvati con "Git LFS": finche' non lanci 'git lfs pull' al loro
-    posto c'e' un finto file di poche righe (un "segnaposto") invece del modello vero.
-    Questa funzione dice se il file e' ancora un segnaposto.
+    The App 1 models are saved with "Git LFS": until you run 'git lfs pull' there is, in their
+    place, a fake file of a few lines (a "placeholder") instead of the real model.
+    This function says whether the file is still a placeholder.
     """
     try:
-        if Path(percorso).stat().st_size > 2048:        # un modello vero pesa decine di MB
+        if Path(percorso).stat().st_size > 2048:        # a real model weighs tens of MB
             return False
         with open(percorso, "rb") as f:
             return f.read(40).startswith(b"version https://git-lfs")
@@ -190,9 +190,9 @@ def e_segnaposto_lfs(percorso):
 
 def apri_immagine_rgb(percorso):
     """
-    Apre la foto e la restituisce in formato RGB, ruotandola come l'ha scattata il telefono
-    (i telefoni salvano la foto 'storta' + una nota 'ruotala di 90 gradi': qui la applichiamo).
-    Richiede Pillow, che e' presente in tutti gli ambienti dei progetti.
+    Opens the photo and returns it in RGB format, rotating it as the phone took it
+    (phones save the photo 'crooked' + a note 'rotate it by 90 degrees': here we apply it).
+    Requires Pillow, which is present in all the project environments.
     """
     from PIL import Image, ImageOps
     img = Image.open(percorso)
@@ -201,21 +201,21 @@ def apri_immagine_rgb(percorso):
 
 
 # ==========================================================================================
-# 3. GLI "OPERAI": ognuno lavora per un metodo e gira DENTRO l'ambiente .venv di quel progetto
+# 3. THE "WORKERS": each one works for one method and runs INSIDE the .venv environment of that project
 # ==========================================================================================
 
-# ----------------------------- 3a. METODO 1: App 1 (TensorFlow) ---------------------------
+# ----------------------------- 3a. METHOD 1: App 1 (TensorFlow) ---------------------------
 
 def lavora_app1(foto, tipo, repo):
     """
-    Esegue i 10 modelli di App 1 (5 per foto di pelle + 5 per dermoscopia), uno alla volta.
-    Replica fedelmente il codice dell'app originale (Melanoma_Detection.py): stesse
-    architetture, stessi file di pesi, stesse dimensioni e preprocessing.
-    Restituisce la lista delle "schede" di risposta.
+    Runs the 10 models of App 1 (5 for skin photos + 5 for dermoscopy), one at a time.
+    It faithfully replicates the code of the original app (Melanoma_Detection.py): same
+    architectures, same weight files, same sizes and preprocessing.
+    Returns the list of answer "cards".
     """
     import gc
     import numpy as np
-    os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")      # meno messaggi tecnici di TensorFlow
+    os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")      # fewer technical TensorFlow messages
     import tensorflow as tf
     from tensorflow.keras.models import Model, load_model
     from tensorflow.keras.layers import (Input, Conv2D, MaxPooling2D, Dropout, Flatten, Dense,
@@ -229,15 +229,15 @@ def lavora_app1(foto, tipo, repo):
 
     cartella = Path(repo) / CARTELLA_APP1
 
-    # ---- Le "ricette" (architetture) dei modelli, copiate dall'app originale ----------------
-    # Ogni modello riceve 6 "canali": 3 sono la foto (rosso, verde, blu) e 3 sono una "mappa di
-    # salienza" (una sorta di mappa di attenzione). L'app originale, per la mappa, usa tutti zeri.
+    # ---- The "recipes" (architectures) of the models, copied from the original app ----------
+    # Each model receives 6 "channels": 3 are the photo (red, green, blue) and 3 are a "saliency
+    # map" (a sort of attention map). The original app uses all zeros for the map.
 
     def costruisci_cnn(forma=(224, 224, 6), classi=6):
-        """Rete 'fatta in casa' con 5 blocchi di convoluzioni, applicata a foto e mappa."""
+        """'Home-made' network with 5 convolution blocks, applied to photo and map."""
         ingresso = Input(forma)
-        parte_foto = ingresso[:, :, :, :3]          # i primi 3 canali = la foto
-        parte_mappa = ingresso[:, :, :, 3:]         # gli ultimi 3 canali = la mappa di salienza
+        parte_foto = ingresso[:, :, :, :3]          # the first 3 channels = the photo
+        parte_mappa = ingresso[:, :, :, 3:]         # the last 3 channels = the saliency map
 
         def ramo(x):
             for filtri in (32, 64, 128, 256, 512):
@@ -256,9 +256,9 @@ def lavora_app1(foto, tipo, repo):
 
     def costruisci_con_base(classe_base, lato, classi=6):
         """
-        Modello a 'trasferimento': prende una rete famosa (VGG16, ResNet50, EfficientNetB4,
-        InceptionResNetV2), la applica alla foto e alla mappa, unisce i due risultati e li
-        passa a due strati finali che scelgono tra le 6 classi.
+        'Transfer' model: takes a famous network (VGG16, ResNet50, EfficientNetB4,
+        InceptionResNetV2), applies it to the photo and the map, joins the two results and
+        passes them to two final layers that choose among the 6 classes.
         """
         base = classe_base(include_top=False, weights=None, input_shape=(lato, lato, 3))
         ingresso = Input((lato, lato, 6))
@@ -271,13 +271,13 @@ def lavora_app1(foto, tipo, repo):
 
     def prepara_input(lato, funzione_prep, canali):
         """
-        Legge la foto, la porta a lato x lato pixel (come fa Keras: metodo 'nearest'),
-        applica il preprocessing del modello e, se il modello vuole 6 canali, aggiunge
-        i 3 canali di mappa a zero (stesso comportamento dell'app originale).
+        Reads the photo, brings it to side x side pixels (as Keras does: 'nearest' method),
+        applies the model's preprocessing and, if the model wants 6 channels, adds
+        the 3 map channels as zeros (same behaviour as the original app).
         """
         from PIL import Image
         img = apri_immagine_rgb(foto).resize((lato, lato), Image.NEAREST)
-        a = np.expand_dims(np.asarray(img, dtype="float32"), axis=0)      # forma (1, lato, lato, 3)
+        a = np.expand_dims(np.asarray(img, dtype="float32"), axis=0)      # shape (1, side, side, 3)
         if funzione_prep is not None:
             a = funzione_prep(a.copy())
         if canali == 6:
@@ -285,7 +285,7 @@ def lavora_app1(foto, tipo, repo):
         return a
 
     def etichetta_classi(p):
-        """Da 6 probabilita' a: etichetta leggibile, verdetto, sicurezza, prob. di melanoma."""
+        """From 6 probabilities to: readable label, verdict, confidence, melanoma prob."""
         i = int(np.argmax(p))
         codice = ORDINE_CLASSI_APP1[i]
         descr, verdetto = CLASSI_APP1[codice]
@@ -296,23 +296,24 @@ def lavora_app1(foto, tipo, repo):
     risultati = []
 
     def tutti_segnaposto(nomi_file):
-        """True se TUTTI i file indicati esistono ma sono ancora segnaposto Git LFS."""
+        """True if ALL the given files exist but are still Git LFS placeholders."""
         percorsi = [cartella / n for n in nomi_file]
         return all(p.exists() and e_segnaposto_lfs(p) for p in percorsi)
 
-    messaggio_lfs = (T(f"i modelli di App 1 non sono stati scaricati: sono ancora dei segnaposto Git LFS. "
-                     f"Apri PowerShell nella cartella {cartella} e lancia 'git lfs pull', poi riprova."))
+    messaggio_lfs = (T("the App 1 models have not been downloaded: they are still Git LFS placeholders. Open "
+                       f"PowerShell in the folder {cartella}, run 'git lfs pull', then try again."))
 
-    # ---- Gruppo "foto di pelle": ricetta + file dei pesi ------------------------------------
+    # ---- "Skin photos" group: recipe + weights files ----------------------------------------
     gruppo_pelle = [
-        # nome,               ricetta,                                              file pesi,                                 lato, preprocessing
+        # name,               recipe,                                              weights file,
+        # side, preprocessing
         ("CNN",               lambda: costruisci_cnn(),                              "CNN_skin_classifier_weights.weights.h5",  224, None),
         ("VGG16",             lambda: costruisci_con_base(VGG16, 224),               "best_VGG16_weights.weights.h5",           224, prep_vgg16),
         ("ResNet50",          lambda: costruisci_con_base(ResNet50, 224),            "best_ResNet50_weights.weights.h5",        224, prep_resnet50),
         ("EfficientNetB4",    lambda: costruisci_con_base(EfficientNetB4, 380),      "best_EfficientNetB4_weights.weights.h5",  380, prep_efficientnet),
         ("InceptionResNetV2", lambda: costruisci_con_base(InceptionResNetV2, 299),   "best_InceptionResNetV2_weights.weights.h5", 299, prep_inception),
     ]
-    # ---- Gruppo "dermoscopia": modelli gia' completi in un unico file .keras ----------------
+    # ---- "Dermoscopy" group: models already complete in a single .keras file ----------------
     gruppo_derm = [
         ("CNN",               "DM_melanoma_cnn_with_saliency.keras",          224, None),
         ("VGG16",             "DM_vgg16_model_with_saliency.keras",           224, prep_vgg16),
@@ -322,108 +323,107 @@ def lavora_app1(foto, tipo, repo):
     ]
 
     def libera_memoria():
-        """Scarica il modello dalla memoria prima del prossimo (alcuni pesano parecchio)."""
+        """Unloads the model from memory before the next one (some weigh quite a lot)."""
         tf.keras.backend.clear_session()
         gc.collect()
 
-    # ---------------------------- foto di pelle -----------------------------------------------
+    # ---------------------------- skin photos  ------------------------------------------------
     if tipo in ("normale", "entrambe") and tutti_segnaposto([g[2] for g in gruppo_pelle]):
-        # Caso tipico di chi non ha ancora fatto 'git lfs pull': un solo messaggio chiaro, non cinque.
-        risultati.append(nuovo_risultato("5 modelli per foto di pelle", "non_disponibile",
-                                         gruppo="foto di pelle", nota=messaggio_lfs))
+        # Typical case of someone who has not yet run 'git lfs pull': a single clear message, not five.
+        risultati.append(nuovo_risultato("5 skin-photo models", "non_disponibile",
+                                         gruppo=T("skin photos"), nota=messaggio_lfs))
     elif tipo in ("normale", "entrambe"):
         for nome, ricetta, file_pesi, lato, prep in gruppo_pelle:
             t0 = time.time()
             percorso = cartella / file_pesi
             try:
                 if not percorso.exists():
-                    raise FileNotFoundError(f"file {file_pesi} non trovato in {cartella}")
+                    raise FileNotFoundError(f"file {file_pesi} not found in {cartella}")
                 if e_segnaposto_lfs(percorso):
                     risultati.append(nuovo_risultato(
-                        nome, "non_disponibile", gruppo="foto di pelle",
-                        nota=T(f"{file_pesi} e' ancora un segnaposto Git LFS: apri PowerShell nella cartella "
-                             f"{cartella} e lancia 'git lfs pull'.")))
+                        nome, "non_disponibile", gruppo=T("skin photos"),
+                        nota=T(f"{file_pesi} is still a Git LFS placeholder: open PowerShell in the folder "
+                               f"{cartella} and run 'git lfs pull'.")))
                     continue
                 modello = ricetta()
                 modello.load_weights(str(percorso))                       # carica i pesi addestrati
                 x = prepara_input(lato, prep, 6)
-                p = np.asarray(modello.predict(x, verbose=0))[0]          # le 6 probabilita'
+                p = np.asarray(modello.predict(x, verbose=0))[0]          # the 6 probabilities
                 etichetta, verdetto, sicurezza, p_mel, tutte = etichetta_classi(p)
                 risultati.append(nuovo_risultato(
-                    nome, "ok", etichetta, sicurezza, p_mel, verdetto, gruppo="foto di pelle",
+                    nome, "ok", etichetta, sicurezza, p_mel, verdetto, gruppo=T("skin photos"),
                     dettaglio={"probabilita_per_classe": tutte}, secondi=round(time.time() - t0, 1)))
             except Exception as e:
                 traceback.print_exc()
-                risultati.append(nuovo_risultato(nome, "errore", gruppo="foto di pelle",
+                risultati.append(nuovo_risultato(nome, "errore", gruppo=T("skin photos"),
                                                  nota=f"{type(e).__name__}: {str(e)[:300]}"))
             finally:
                 libera_memoria()
 
-    # ---------------------------- dermoscopia -------------------------------------------------
+    # ---------------------------- dermoscopy  -------------------------------------------------
     if tipo in ("dermoscopica", "entrambe") and tutti_segnaposto([g[1] for g in gruppo_derm]):
-        risultati.append(nuovo_risultato("5 modelli per dermoscopia", "non_disponibile",
-                                         gruppo="dermoscopia", nota=messaggio_lfs))
+        risultati.append(nuovo_risultato("5 dermoscopy models", "non_disponibile",
+                                         gruppo=T("dermoscopy"), nota=messaggio_lfs))
     elif tipo in ("dermoscopica", "entrambe"):
         for nome, file_modello, lato_app, prep in gruppo_derm:
             t0 = time.time()
             percorso = cartella / file_modello
             try:
                 if not percorso.exists():
-                    raise FileNotFoundError(f"file {file_modello} non trovato in {cartella}")
+                    raise FileNotFoundError(f"file {file_modello} not found in {cartella}")
                 if e_segnaposto_lfs(percorso):
                     risultati.append(nuovo_risultato(
-                        nome, "non_disponibile", gruppo="dermoscopia",
-                        nota=T(f"{file_modello} e' ancora un segnaposto Git LFS: lancia 'git lfs pull' "
-                             f"nella cartella {cartella}.")))
+                        nome, "non_disponibile", gruppo=T("dermoscopy"),
+                        nota=T(f"{file_modello} is still a Git LFS placeholder: run 'git lfs pull' in the folder "
+                               f"{cartella}.")))
                     continue
-                # compile=False: ci serve solo per fare previsioni, non per riaddestrarlo.
-                # NB: non disattivo mai la 'safe mode' di Keras: un file modello scaricato da
-                # internet non va fatto eseguire alla cieca.
+                # compile=False: we only need it to make predictions, not to retrain it.
+                # NB: I never disable Keras's 'safe mode': a model file downloaded from
+                # the internet must not be run blindly.
                 modello = load_model(str(percorso), compile=False)
                 forma = modello.input_shape
                 if isinstance(forma, list):
-                    raise ValueError("il modello ha piu' ingressi: non gestito")
+                    raise ValueError("the model has more than one input: not supported")
                 canali = forma[-1]
                 lato = forma[1] if (forma[1] is not None and forma[1] == forma[2]) else lato_app
                 if canali not in (3, 6):
-                    raise ValueError(f"numero di canali inatteso: {canali}")
+                    raise ValueError(f"unexpected number of channels: {canali}")
                 x = prepara_input(lato, prep, canali)
                 p = np.asarray(modello.predict(x, verbose=0))[0]
                 n = len(p)
-                # L'app originale legge SEMPRE l'uscita come 6 classi di pelle (un suo errore di
-                # programmazione: 'if tab1' e' sempre vero). Qui invece guardo quante uscite ha
-                # il modello e le interpreto di conseguenza.
+                # The original app ALWAYS reads the output as 6 skin classes (a programming error of its own:
+                # 'if tab1' is always true). Here instead I look at how many outputs the model has and interpret them accordingly.
                 if n == 1:
                     pm = float(p[0])
                     etich = "maligno" if pm > 0.5 else "benigno"
                     risultati.append(nuovo_risultato(
                         nome, "ok", etich, max(pm, 1 - pm), None,
-                        "attenzione" if pm > 0.5 else "benigno", gruppo="dermoscopia",
-                        nota=T(f"probabilita' di malignita' stimata dal modello: {pm:.0%}"),
+                        "attenzione" if pm > 0.5 else "benigno", gruppo=T("dermoscopy"),
+                        nota=T(f"probability of malignancy estimated by the model: {pm}"),
                         dettaglio={"prob_maligno": round(pm, 4)}, secondi=round(time.time() - t0, 1)))
                 elif n == 2:
                     pm = float(p[1])
                     etich = "maligno" if pm > 0.5 else "benigno"
                     risultati.append(nuovo_risultato(
                         nome, "ok", etich, max(pm, 1 - pm), None,
-                        "attenzione" if pm > 0.5 else "benigno", gruppo="dermoscopia",
-                        nota=T("assumo che le 2 uscite siano [benigno, maligno]; ordine non verificabile"),
+                        "attenzione" if pm > 0.5 else "benigno", gruppo=T("dermoscopy"),
+                        nota=T("I assume the 2 outputs are [benign, malignant]; order cannot be verified"),
                         dettaglio={"prob_benigno": round(float(p[0]), 4), "prob_maligno": round(pm, 4)},
                         secondi=round(time.time() - t0, 1)))
                 elif n == 6:
                     etichetta, verdetto, sicurezza, p_mel, tutte = etichetta_classi(p)
                     risultati.append(nuovo_risultato(
-                        nome, "ok", etichetta, sicurezza, p_mel, verdetto, gruppo="dermoscopia",
-                        nota=T("uscita letta come le 6 classi di pelle (non verificabile)"),
+                        nome, "ok", etichetta, sicurezza, p_mel, verdetto, gruppo=T("dermoscopy"),
+                        nota=T("output interpreted as the 6 skin classes (not verifiable)"),
                         dettaglio={"probabilita_per_classe": tutte}, secondi=round(time.time() - t0, 1)))
                 else:
                     risultati.append(nuovo_risultato(
                         nome, "ok", f"classe numero {int(np.argmax(p))}", float(np.max(p)), None, "incerto",
-                        gruppo="dermoscopia", nota=T(f"il modello ha {n} uscite: significato sconosciuto"),
+                        gruppo=T("dermoscopy"), nota=T(f"the model has {n} outputs: meaning unknown"),
                         secondi=round(time.time() - t0, 1)))
             except Exception as e:
                 traceback.print_exc()
-                risultati.append(nuovo_risultato(nome, "errore", gruppo="dermoscopia",
+                risultati.append(nuovo_risultato(nome, "errore", gruppo=T("dermoscopy"),
                                                  nota=f"{type(e).__name__}: {str(e)[:300]}"))
             finally:
                 libera_memoria()
@@ -431,13 +431,13 @@ def lavora_app1(foto, tipo, repo):
     return risultati
 
 
-# ----------------------------- 3b. METODO 2: SkinSense (online) ---------------------------
+# ----------------------------- 3b. METHOD 2: SkinSense (online)  --------------------------
 
 def lavora_skinsense(foto, url, cartella_out):
     """
-    Invia la foto al servizio online usato dal sito di SkinSense e legge la risposta.
-    PRIMA dell'invio ricodifica la foto da zero, in modo da buttare via tutti i metadati
-    (posizione GPS, modello del telefono, data e ora): partono solo i pixel.
+    Sends the photo to the online service used by the SkinSense website and reads the answer.
+    BEFORE sending, it re-encodes the photo from scratch, so as to throw away all the metadata
+    (GPS position, phone model, date and time): only the pixels are sent.
     """
     import base64
     import urllib.request
@@ -446,25 +446,25 @@ def lavora_skinsense(foto, url, cartella_out):
     import io
 
     t0 = time.time()
-    # Difesa: l'indirizzo deve essere https (niente "file:" o "ftp:", che leggerebbero file del tuo PC).
+    # Defence: the address must be https (no "file:" or "ftp:", which would read files from your PC).
     if not str(url).lower().startswith("https://"):
-        return [nuovo_risultato("SkinSense", "errore", nota=T("indirizzo del servizio non ammesso (serve https)"))]
-    # ---- 1. Pulizia dei metadati ------------------------------------------------------------
+        return [nuovo_risultato("SkinSense", "errore", nota=T("service address not allowed (https required)"))]
+    # ---- 1. Cleaning the metadata -----------------------------------------------------------
     nota_pulizia = ""
     try:
         img = apri_immagine_rgb(foto)
-        # Riduco le foto enormi (i telefoni fanno 12 megapixel): il modello online le riduce
-        # comunque e cosi' l'invio e' molto piu' veloce.
+        # I reduce huge photos (phones take 12 megapixels): the online model reduces them
+        # anyway and so the sending is much faster.
         img.thumbnail((1600, 1600))
         buffer = io.BytesIO()
-        img.save(buffer, format="JPEG", quality=92)      # senza 'exif=': i metadati non vengono scritti
+        img.save(buffer, format="JPEG", quality=92)      # without 'exif=': the metadata is not written
         contenuto = buffer.getvalue()
     except Exception as e:
-        # Se Pillow non riesce, NON invio l'originale (potrebbe contenere il GPS): mi fermo.
+        # If Pillow fails, I do NOT send the original (it might contain the GPS): I stop.
         return [nuovo_risultato("SkinSense", "errore",
-                                nota=T(f"non riesco a preparare la foto in modo sicuro: {e}"))]
+                                nota=T(f"I cannot prepare the photo safely: {e}"))]
 
-    # ---- 2. Costruzione della richiesta HTTP 'multipart' (il modo standard per inviare file) -
+    # ---- 2. Building the 'multipart' HTTP request (the standard way to send files) -----------
     confine = uuid.uuid4().hex
     corpo = b"".join([
         f"--{confine}\r\n".encode(),
@@ -478,35 +478,35 @@ def lavora_skinsense(foto, url, cartella_out):
         headers={"Content-Type": f"multipart/form-data; boundary={confine}",
                  "Accept": "application/json"})
 
-    # ---- 3. Invio, con un secondo tentativo (il servizio gratuito puo' essere 'addormentato') -
+    # ---- 3. Sending, with a second attempt (the free service may be 'asleep') -----------------
     risposta = None
     ultimo_errore = ""
     for tentativo in (1, 2):
         try:
-            # Controllo di sicurezza (bandit B310): https controllato sopra.
+            # Security check (bandit B310): https checked above.
             with urllib.request.urlopen(richiesta, timeout=150) as r:   # nosec B310
-                risposta = json.loads(r.read(5 * 1024 * 1024).decode("utf-8", errors="replace"))   # al massimo 5 MB di risposta
+                risposta = json.loads(r.read(5 * 1024 * 1024).decode("utf-8", errors="replace"))   # at most 5 MB of response
             break
         except urllib.error.HTTPError as e:
-            ultimo_errore = f"il server ha risposto con errore HTTP {e.code}"
+            ultimo_errore = f"the server answered with HTTP error {e.code}"
         except Exception as e:
             ultimo_errore = f"{type(e).__name__}: {e}"
         if tentativo == 1:
-            print(f"SkinSense: primo tentativo fallito ({ultimo_errore}); riprovo tra 30 secondi...")
+            print(f"SkinSense: first attempt failed ({ultimo_errore}); retrying in 30 seconds...")
             time.sleep(30)
     if risposta is None:
-        return [nuovo_risultato("SkinSense", "errore", nota=T(f"servizio non raggiungibile: {ultimo_errore}"))]
+        return [nuovo_risultato("SkinSense", "errore", nota=T(f"service unreachable: {ultimo_errore}"))]
 
-    # ---- 4. Lettura della risposta -----------------------------------------------------------
+    # ---- 4. Reading the response -------------------------------------------------------------
     nome_lesione = str(risposta.get("full_name") or "").strip()
     confidenza = risposta.get("confidence")
     try:
         c = float(confidenza)
-        c = c / 100.0 if c > 1 else c            # il servizio la da' in percentuale (es. 87.3)
+        c = c / 100.0 if c > 1 else c            # the service gives it as a percentage (e.g. 87.3)
     except (TypeError, ValueError):
         c = None
 
-    # Giudizio grossolano dal nome della lesione, confrontando parole chiave.
+    # Rough judgement from the name of the lesion, comparing keywords.
     n = nome_lesione.lower()
     if "melanoma" in n or "basal" in n or "actinic" in n or "squamous" in n or "carcinoma" in n:
         verdetto = "attenzione"
@@ -515,8 +515,8 @@ def lavora_skinsense(foto, url, cartella_out):
     else:
         verdetto = "incerto"
 
-    # La risposta puo' contenere un'immagine (probabilmente una mappa di calore): se e' un'immagine
-    # vera, la salvo come file a parte; non la stampo nel rapporto.
+    # The response may contain an image (probably a heat map): if it is a real image,
+    # I save it as a separate file; I do not print it in the report.
     mappa_salvata = ""
     viz = risposta.get("visualization")
     if isinstance(viz, str) and len(viz) > 200:
@@ -535,22 +535,22 @@ def lavora_skinsense(foto, url, cartella_out):
     if mappa_salvata:
         dettaglio["mappa_salvata_in"] = mappa_salvata
     rischio = risposta.get("risk_level")
-    nota = f"livello di rischio dichiarato dal servizio: {rischio}" if rischio else ""
+    nota = f"risk level declared by the service: {rischio}" if rischio else ""
     if not nome_lesione:
-        return [nuovo_risultato("SkinSense", "errore", nota=T("risposta senza nome della lesione: {risposta}").format(
+        return [nuovo_risultato("SkinSense", "errore", nota=T("response without a lesion name: {risposta}").format(
                                     risposta=json.dumps(risposta, ensure_ascii=False)[:300]))]
     return [nuovo_risultato("SkinSense", "ok", nome_lesione, c, None, verdetto, nota=nota,
                             dettaglio=dettaglio, secondi=round(time.time() - t0, 1))]
 
 
-# ----------------------------- 3c. METODO 4: vatsal30 (PyTorch) ---------------------------
+# ----------------------------- 3c. METHOD 4: vatsal30 (PyTorch)  --------------------------
 
 def lavora_vatsal(foto, repo):
     """
-    Esegue il 'comitato' di modelli SE-ResNeXt50 di vatsal30 (fino a 5, uno per 'fold') e
-    ne fa la media. Funziona SOLO se esistono i file model_fold_0.bin ... model_fold_4.bin
-    nella cartella 'model': il repository NON li include, vanno addestrati col dataset
-    SIIM-ISIC di Kaggle (molti GB).
+    Runs the 'committee' of SE-ResNeXt50 models of vatsal30 (up to 5, one per 'fold') and
+    averages them. It works ONLY if the files model_fold_0.bin ... model_fold_4.bin exist
+    in the 'model' folder: the repository does NOT include them, they must be trained with the
+    SIIM-ISIC dataset from Kaggle (many GB).
     """
     t0 = time.time()
     cartella = Path(repo) / CARTELLA_VATSAL
@@ -558,9 +558,9 @@ def lavora_vatsal(foto, repo):
     if not pesi:
         return [nuovo_risultato(
             "SE-ResNeXt50 x5", "non_disponibile",
-            nota=T("mancano i pesi addestrati: nella cartella {cartella} non ci sono i file "
-                 "model_fold_0.bin ... model_fold_4.bin. Il repository non li contiene: vanno prodotti "
-                 "con train.py sul dataset SIIM-ISIC.").format(cartella=cartella / 'model'))]
+            nota=T("the trained weights are missing: in the folder {cartella} there are no files "
+                   "model_fold_0.bin ... model_fold_4.bin. The repository does not contain them: they must be "
+                   "produced with train.py on the SIIM-ISIC dataset.").format(cartella=cartella / 'model'))]
 
     import numpy as np
     import torch
@@ -569,63 +569,64 @@ def lavora_vatsal(foto, repo):
     import pretrainedmodels
 
     class SEResNext50(nn.Module):
-        """Stessa rete dell'originale (prediction.py), senza la parte che serve solo all'addestramento."""
+        """Same network as the original (prediction.py), without the part that is only needed for training."""
         def __init__(self):
             super().__init__()
             self.base_model = pretrainedmodels.__dict__["se_resnext50_32x4d"](pretrained=None)
-            self.l0 = nn.Linear(2048, 1)          # un solo numero in uscita: >0 = melanoma, <=0 = no
+            self.l0 = nn.Linear(2048, 1)          # a single number as output: >0 = melanoma, <=0 = no
 
         def forward(self, immagine):
             x = self.base_model.features(immagine)
             x = F.adaptive_avg_pool2d(x, 1).reshape(immagine.shape[0], -1)
             return self.l0(x)
 
-    # Preparazione della foto: la rete e' stata addestrata su immagini 224x224 (vedi README del
-    # progetto), normalizzate con le medie/deviazioni standard di ImageNet.
+    # Preparing the photo: the network was trained on 224x224 images (see the project's README),
+    # normalised with the ImageNet means/standard deviations.
     from PIL import Image
     img = apri_immagine_rgb(foto).resize((224, 224), Image.BILINEAR)
     a = np.asarray(img, dtype="float32") / 255.0
     media = np.array([0.485, 0.456, 0.406], dtype="float32")
     dev = np.array([0.229, 0.224, 0.225], dtype="float32")
-    a = ((a - media) / dev).transpose(2, 0, 1)            # da (alto, largo, colori) a (colori, alto, largo)
+    a = ((a - media) / dev).transpose(2, 0, 1)            # from (height, width, colours) to (colours, height, width)
     x = torch.from_numpy(a).unsqueeze(0)
 
     punteggi = []
     for percorso in pesi:
         modello = SEResNext50()
-        # weights_only=True: il file può contenere solo numeri, mai codice eseguibile (un file di pesi manomesso
-        # non può far girare nulla). Serve PyTorch 1.13 o più recente: con uno più vecchio ci fermiamo
-        # invece di caricare il file "alla vecchia maniera", che sarebbe insicuro.
+        # weights_only=True: the file can only contain numbers, never executable code (a tampered weights file
+        # cannot run anything). It needs PyTorch 1.13 or newer: with an older one we stop
+        # instead of loading the file "the old way", which would be insecure.
         try:
             stato = torch.load(str(percorso), map_location="cpu", weights_only=True)
         except TypeError:
-            raise RuntimeError("PyTorch troppo vecchio: aggiornalo (pip install -U torch) per caricare i pesi in modo sicuro")
+            raise RuntimeError("PyTorch is too old: update it (pip install -U torch) to load the weights safely")
         modello.load_state_dict(stato)
         modello.eval()
         with torch.no_grad():
             punteggi.append(float(modello(x).reshape(-1)[0]))
     media_punteggi = sum(punteggi) / len(punteggi)
-    prob = 1.0 / (1.0 + float(np.exp(-media_punteggi)))     # sigmoide: da punteggio a probabilita'
-    melanoma = media_punteggi > 0                            # stessa soglia dell'app originale
+    prob = 1.0 / (1.0 + float(np.exp(-media_punteggi)))     # sigmoid: from score to probability
+    melanoma = media_punteggi > 0                            # same threshold as the original app
     return [nuovo_risultato(
         f"SE-ResNeXt50 x{len(pesi)}", "ok",
-        "melanoma rilevato" if melanoma else "melanoma non rilevato",
+        T("melanoma detected") if melanoma else T("melanoma not detected"),
         prob if melanoma else 1 - prob, prob, "attenzione" if melanoma else "benigno",
-        nota=T("media di {n} modelli; punteggio medio {media} (soglia 0)").format(n=len(pesi), media=f"{media_punteggi:+.2f}"),
+        nota=T("average of {n} models; mean score {media} (threshold 0)").format(n=len(pesi), media=f"{media_punteggi:+.2f}"),
         dettaglio={"punteggi_per_fold": [round(s, 3) for s in punteggi]},
         secondi=round(time.time() - t0, 1))]
 
 
 def esegui_worker(nome, args):
-    """Punto d'ingresso degli 'operai': fa il lavoro del metodo richiesto e scrive il JSON."""
+    """Entry point of the 'workers': does the job of the requested method and writes the JSON."""
     try:
-        # Prima di tutto controllo che la foto si apra davvero: se e' rovinata lo dico UNA volta sola
-        # invece di far fallire ogni modello con lo stesso errore.
+        # First of all I check that the photo really opens: if it is damaged I say so ONCE
+        # instead of making every model fail with the same error.
         try:
             apri_immagine_rgb(args.foto).close()
         except Exception as e:
             salva_json(args.out, [nuovo_risultato(nome, "errore",
-                                                  nota=T("la foto non si apre come immagine ({tipo}): {dettaglio}").format(tipo=type(e).__name__, dettaglio=str(e)[:200]))])
+                                                  nota=T("the photo does not open as an image ({tipo}): "
+                                                         "{dettaglio}").format(tipo=type(e).__name__, dettaglio=str(e)[:200]))])
             return
         if nome == "app1":
             risultati = lavora_app1(args.foto, args.tipo, args.repo)
@@ -634,7 +635,7 @@ def esegui_worker(nome, args):
         elif nome == "vatsal":
             risultati = lavora_vatsal(args.foto, args.repo)
         else:
-            raise ValueError(f"operaio sconosciuto: {nome}")
+            raise ValueError(f"unknown worker: {nome}")
     except Exception as e:
         traceback.print_exc()
         risultati = [nuovo_risultato(nome, "errore", nota=f"{type(e).__name__}: {str(e)[:300]}")]
@@ -642,11 +643,11 @@ def esegui_worker(nome, args):
 
 
 # ==========================================================================================
-# 4. IL "DIRETTORE D'ORCHESTRA": sceglie la foto, avvia gli operai, scrive il rapporto
+# 4. THE "CONDUCTOR": chooses the photo, starts the workers, writes the report
 # ==========================================================================================
 
 def trova_python_venv(cartella):
-    """Cerca il Python dell'ambiente .venv di un progetto (Windows: Scripts\\python.exe)."""
+    """Looks for the Python of a project's .venv environment (Windows: Scripts\\python.exe)."""
     for relativo in ("Scripts/python.exe", "bin/python"):
         candidato = Path(cartella) / ".venv" / relativo
         if candidato.exists():
@@ -655,29 +656,29 @@ def trova_python_venv(cartella):
 
 
 def scegli_foto(args):
-    """Decide quale foto usare: da terminale, dall'impostazione FOTO, oppure con una finestra."""
+    """Decides which photo to use: from the terminal, from the FOTO setting, or with a window."""
     percorso = args.foto or FOTO
     if not percorso:
         try:
             import tkinter as tk
             from tkinter import filedialog
             radice = tk.Tk()
-            radice.withdraw()                       # nascondo la finestrella vuota di sfondo
-            radice.attributes("-topmost", True)     # faccio comparire il selettore in primo piano
+            radice.withdraw()                       # I hide the empty background window
+            radice.attributes("-topmost", True)     # I bring the selector to the front
             percorso = filedialog.askopenfilename(
-                title="Scegli la foto del neo da analizzare",
-                filetypes=[("Immagini", "*.jpg *.jpeg *.png *.bmp *.webp *.tif *.tiff"), ("Tutti i file", "*.*")])
+                title="Choose the photo of the mole to analyse",
+                filetypes=[("Immagini", "*.jpg *.jpeg *.png *.bmp *.webp *.tif *.tiff"), ("All files", "*.*")])
             radice.destroy()
         except Exception:
-            percorso = input("Scrivi il percorso completo della foto e premi Invio: ").strip().strip('"')
+            percorso = input("Type the full path of the photo and press Enter: ").strip().strip('"')
     return Path(percorso) if percorso else None
 
 
 def lancia_operaio(nome, python_exe, argomenti, timeout, cartella_out):
     """
-    Avvia l'operaio 'nome' in un processo separato, con il Python indicato, e ne raccoglie
-    la risposta. Qualunque cosa vada storta diventa una 'scheda' di errore invece di un crash.
-    Tutto quello che l'operaio scrive a schermo finisce nel file log_<nome>.txt.
+    Starts the worker 'nome' in a separate process, with the given Python, and collects
+    its answer. Whatever goes wrong becomes an error 'card' instead of a crash.
+    Everything the worker writes to the screen ends up in the file log_<nome>.txt.
     """
     file_json = Path(cartella_out) / f"_risposta_{nome}.json"
     file_log = Path(cartella_out) / f"log_{nome}.txt"
@@ -688,23 +689,23 @@ def lancia_operaio(nome, python_exe, argomenti, timeout, cartella_out):
         with open(file_log, "w", encoding="utf-8", errors="replace") as log:
             subprocess.run(comando, stdout=log, stderr=subprocess.STDOUT, timeout=timeout, env=ambiente)
     except subprocess.TimeoutExpired:
-        return [nuovo_risultato(nome, "errore", nota=T("interrotto dopo {minuti} minuti (tempo massimo)").format(minuti=timeout // 60))]
+        return [nuovo_risultato(nome, "errore", nota=T("stopped after {minuti} minutes (maximum time)").format(minuti=timeout // 60))]
     except Exception as e:
-        return [nuovo_risultato(nome, "errore", nota=T(f"impossibile avviare: {e}"))]
+        return [nuovo_risultato(nome, "errore", nota=T(f"cannot start: {e}"))]
     if file_json.exists():
         try:
             dati = json.loads(file_json.read_text(encoding="utf-8"))
-            file_json.unlink()                                  # il file temporaneo non serve piu'
+            file_json.unlink()                                  # the temporary file is no longer needed
             return dati
         except Exception as e:
-            return [nuovo_risultato(nome, "errore", nota=T(f"risposta illeggibile: {e}"))]
-    # Nessuna risposta: l'operaio e' morto prima di scrivere. Prendo le ultime righe del log.
+            return [nuovo_risultato(nome, "errore", nota=T(f"unreadable response: {e}"))]
+    # No answer: the worker died before writing. I take the last lines of the log.
     try:
         ultime = [r for r in file_log.read_text(encoding="utf-8", errors="replace").splitlines() if r.strip()][-6:]
     except OSError:
         ultime = []
     return [nuovo_risultato(nome, "errore",
-                            nota="il programma si e' chiuso senza risposta. Ultime righe: " + " | ".join(ultime)[:500])]
+                            nota="the program closed without an answer. Last lines: " + " | ".join(ultime)[:500])]
 
 
 def percentuale(x):
@@ -714,8 +715,8 @@ def percentuale(x):
 
 def a_capo(testo, rientro="      "):
     """
-    Manda a capo un testo lungo con un rientro uniforme (per il rapporto).
-    Se il testo contiene gia' degli 'a capo' voluti (\\n), li rispetta.
+    Wraps a long text with a uniform indent (for the report).
+    If the text already contains intended line breaks (\\n), it respects them.
     """
     paragrafi = testo.split("\n")
     return "\n".join(textwrap.fill(p, width=96, initial_indent=rientro, subsequent_indent=rientro)
@@ -723,21 +724,21 @@ def a_capo(testo, rientro="      "):
 
 
 def frase_conteggio(risultati):
-    """Riassume 'quanti modelli hanno detto cosa', es. '4 su 5: NEV (...); 1 su 5: MEL (...)'."""
+    """Summarises 'how many models said what', e.g. '4 of 5: NEV (...); 1 of 5: MEL (...)'."""
     ok = [r for r in risultati if r["stato"] == "ok"]
     if not ok:
         return ""
     conteggi = {}
     for r in ok:
         conteggi[r["etichetta"]] = conteggi.get(r["etichetta"], 0) + 1
-    parti = [f"{n} su {len(ok)}: {et}" for et, n in sorted(conteggi.items(), key=lambda kv: -kv[1])]
+    parti = [f"{n} of {len(ok)}: {et}" for et, n in sorted(conteggi.items(), key=lambda kv: -kv[1])]
     return "; ".join(parti)
 
 
 def verdetto_metodo(risultati):
     """
-    Un unico giudizio per tutto il metodo, per il riepilogo finale:
-    'attenzione' | 'benigno' | 'discordante' (i suoi modelli non sono d'accordo) | None (nessun risultato).
+    A single judgement for the whole method, for the final summary:
+    'attenzione' | 'benigno' | 'discordante' (its models disagree) | None (no result).
     """
     v = [r["verdetto"] for r in risultati if r["stato"] == "ok" and r["verdetto"] in ("attenzione", "benigno")]
     if not v:
@@ -750,52 +751,52 @@ def verdetto_metodo(risultati):
 
 
 def righe_metodo(numero, titolo, risultati, introduzione=""):
-    """Costruisce le righe di testo del rapporto per UN metodo."""
-    righe = ["", "-" * 98, f"METODO {numero} - {titolo}", "-" * 98]
+    """Builds the text lines of the report for ONE method."""
+    righe = ["", "-" * 98, f"METHOD {numero} - {titolo}", "-" * 98]
     if introduzione:
         righe.append(a_capo(introduzione, "  "))
     ok = [r for r in risultati if r["stato"] == "ok"]
-    # ---- frase "Il metodo N ha detto che ..." ----
+    # ---- sentence "Method N said that ..." ----
     if ok:
         righe.append("")
-        for g in dict.fromkeys(r["gruppo"] for r in ok):          # gruppi nell'ordine in cui compaiono
+        for g in dict.fromkeys(r["gruppo"] for r in ok):          # groups in the order in which they appear
             sotto = [r for r in ok if r["gruppo"] == g]
-            righe.append(a_capo(f"IL METODO {numero} HA DETTO CHE" + (f" [{g}]" if g else "")
+            righe.append(a_capo(f"METHOD {numero} SAID THAT" + (f" [{g}]" if g else "")
                                 + " -> " + frase_conteggio(sotto), "  "))
         righe.append("")
-    # ---- una riga per modello ----
-    n_gruppi = len({r["gruppo"] for r in risultati if r["gruppo"]})      # il nome del gruppo si ripete solo se ce n'e' piu' di uno
+    # ---- one line per model ----
+    n_gruppi = len({r["gruppo"] for r in risultati if r["gruppo"]})      # the group name is repeated only if there is more than one
     for r in risultati:
         pre = f"  [{r['gruppo']}] " if (r["gruppo"] and n_gruppi > 1) else "  "
         if r["stato"] == "ok":
             extra = f"  [prob. melanoma: {percentuale(r['prob_mel'])}]" if r["prob_mel"] is not None else ""
-            riga = f"{pre}- {r['nome']:<18} -> {r['etichetta']}  (sicurezza {percentuale(r['valore'])}){extra}"
+            riga = f"{pre}- {r['nome']:<18} -> {r['etichetta']}  (confidence {percentuale(r['valore'])}){extra}"
             righe.append(textwrap.fill(riga, width=98, subsequent_indent="        "))
             if r["nota"]:
                 righe.append(a_capo(r["nota"], "        "))
         elif r["stato"] == "non_disponibile":
-            righe.append(f"{pre}- {r['nome']:<18} NON DISPONIBILE")
+            righe.append(f"{pre}- {r['nome']:<18} NOT AVAILABLE")
             righe.append(a_capo(r["nota"], "        "))
         elif r["stato"] == "non_eseguibile":
             righe.append(a_capo(r["nota"], "  "))
         else:
-            righe.append(f"{pre}- {r['nome']:<18} ERRORE")
+            righe.append(f"{pre}- {r['nome']:<18} ERROR")
             righe.append(a_capo(r["nota"], "        "))
     return righe
 
 
 def costruisci_rapporto(foto, tipo, metodi, durata):
-    """Assembla il testo completo del rapporto (intestazione, 5 metodi, riepilogo, avvertenze)."""
+    """Assembles the full text of the report (header, 5 methods, summary, warnings)."""
     righe = ["=" * 98,
-             " RAPPORTO AUTOMATICO - CONFRONTO DEI METODI SULLA STESSA FOTO",
-             f" Foto: {foto.name}    Tipo dichiarato: {tipo}",
-             f" Data: {time.strftime('%d/%m/%Y %H:%M')}    Durata: {durata // 60:.0f} min {durata % 60:.0f} s",
+             " AUTOMATIC REPORT - COMPARISON OF THE METHODS ON THE SAME PHOTO",
+             f" Photo: {foto.name}    Declared type: {tipo}",
+             f" Date: {time.strftime('%d/%m/%Y %H:%M')}    Duration: {durata // 60:.0f} min {durata % 60:.0f} s",
              "=" * 98]
     for numero, titolo, risultati, intro in metodi:
         righe += righe_metodo(numero, titolo, risultati, intro)
 
-    # ------------------------------ riepilogo finale ----------------------------------------
-    righe += ["", "=" * 98, " RIEPILOGO", "=" * 98]
+    # ------------------------------ final summary  ------------------------------------------
+    righe += ["", "=" * 98, " SUMMARY", "=" * 98]
     giudizi = {}
     for numero, titolo, risultati, intro in metodi:
         giudizi[numero] = verdetto_metodo(risultati)
@@ -804,148 +805,150 @@ def costruisci_rapporto(foto, tipo, metodi, durata):
     benigni = [n for n, g in giudizi.items() if g == "benigno"]
     discordi = [n for n, g in giudizi.items() if g == "discordante"]
     senza = [n for n, g in giudizi.items() if g is None]
-    elenco = lambda lista: ", ".join(f"metodo {n}" for n in lista) if lista else "nessuno"
-    righe.append(f"  Metodi che hanno dato un risultato : {len(con_risultato)} su {len(metodi)}")
-    righe.append(f"  Indicano lesione DA ATTENZIONARE   : {elenco(attenzione)}")
-    righe.append(f"  Indicano lesione BENIGNA           : {elenco(benigni)}")
-    righe.append(f"  Con modelli in disaccordo tra loro : {elenco(discordi)}")
-    righe.append(f"  Nessun risultato (vedi sopra perche'): {elenco(senza)}")
+    elenco = lambda lista: ", ".join(f"method {n}" for n in lista) if lista else "none"
+    righe.append(f"  {'Methods that gave a result':<36}: {len(con_risultato)} of {len(metodi)}")
+    righe.append(f"  {'Flag a lesion TO WATCH':<36}: {elenco(attenzione)}")
+    righe.append(f"  {'Indicate a BENIGN lesion':<36}: {elenco(benigni)}")
+    righe.append(f"  {'With models that disagree':<36}: {elenco(discordi)}")
+    righe.append(f"  {'No result (see above for why)':<36}: {elenco(senza)}")
     righe.append("")
     if not con_risultato:
-        giudizio = "Nessun metodo ha prodotto un risultato: controlla i motivi indicati sopra."
+        giudizio = "No method produced a result: check the reasons given above."
     elif attenzione or discordi:
-        giudizio = ("Almeno un metodo (o un suo modello) segnala una lesione da attenzionare. Non e' una "
-                    "diagnosi e questi strumenti sbagliano spesso, ma e' un motivo in piu' per non rimandare "
-                    "la visita dermatologica e per portare questo rapporto.")
+        giudizio = ("At least one method (or one of its models) flags a lesion to watch. It is not a "
+                    "diagnosis and these tools are often wrong, but it is one more reason not to postpone "
+                    "the dermatology visit and to bring this report.")
     else:
-        giudizio = ("Tutti i metodi che hanno risposto indicano una lesione benigna. Questo NON esclude un "
-                    "melanoma: gli strumenti non sono validati clinicamente e sbagliano anche in questa "
-                    "direzione. Se il neo e' asimmetrico, ha bordi irregolari, colori diversi, e' piu' grande "
-                    "di 6 mm o e' cambiato nel tempo, la visita resta necessaria.")
+        giudizio = ("All the methods that answered indicate a benign lesion. This does NOT rule out a "
+                    "melanoma: the tools are not clinically validated and are also wrong in this "
+                    "direction. If the mole is asymmetric, has irregular borders, different colours, is larger "
+                    "than 6 mm or has changed over time, the visit is still necessary.")
     righe.append(a_capo(giudizio, "  "))
-    righe += ["", "-" * 98, " AVVERTENZE", "-" * 98]
+    righe += ["", "-" * 98, " WARNINGS", "-" * 98]
     for avv in (
-        "Questo rapporto NON e' una diagnosi. I programmi usati sono prototipi di ricerca, non dispositivi medici.",
-        "I metodi sono addestrati su fotografie diverse dalla tua: cambiare luce, distanza o fotocamera puo' cambiare la risposta.",
-        "I modelli di App 1 qui ricevono una 'mappa di salienza' vuota (come fa l'app originale): e' una "
-        "semplificazione che puo' peggiorarne l'affidabilita'.",
-        "Se i metodi sono in disaccordo, e' normale: significa solo che nessuno di loro e' affidabile da solo.",
-        "Porta alla visita la foto, questo rapporto e la data in cui hai notato il neo / eventuali cambiamenti.",
+        "This report is NOT a diagnosis. The programs used are research prototypes, not medical devices.",
+        "The methods are trained on photographs different from yours: changing light, distance or camera can change the answer.",
+        "The App 1 models here receive an empty 'saliency map' (as the original app does): it is a "
+        "simplification that may worsen their reliability.",
+        "If the methods disagree, it is normal: it only means that none of them is reliable on its own.",
+        "Bring to the visit the photo, this report and the date on which you noticed the mole / any changes.",
     ):
         righe.append(a_capo("* " + avv, "  "))
     return "\n".join(righe)
 
 
 def principale():
-    """Funzione principale: e' quella che parte quando premi PLAY."""
-    # ---- Lettura delle opzioni (servono solo da terminale; in Spyder restano ai valori di default) ----
-    parser = argparse.ArgumentParser(description="Analizza una foto con tutti i metodi installati.")
-    parser.add_argument("--foto", default="", help="percorso della foto")
+    """Main function: it is the one that starts when you press PLAY."""
+    # ---- Reading the options (only needed from the terminal; in Spyder they stay at the default values) ---
+    parser = argparse.ArgumentParser(description="Analyse a photo with all the installed methods.")
+    parser.add_argument("--foto", default="", help="path of the photo")
     parser.add_argument("--tipo", default=TIPO_FOTO, choices=["normale", "dermoscopica", "entrambe"])
-    parser.add_argument("--repo", default=str(CARTELLA_REPO), help="cartella dove sono i progetti installati")
-    parser.add_argument("--url", default=URL_SKINSENSE, help="indirizzo del servizio SkinSense")
+    parser.add_argument("--repo", default=str(CARTELLA_REPO), help="folder where the installed projects are")
+    parser.add_argument("--url", default=URL_SKINSENSE, help="address of the SkinSense service")
     parser.add_argument("--senza-app1", action="store_true")
     parser.add_argument("--senza-skinsense", action="store_true")
     parser.add_argument("--senza-vatsal", action="store_true")
-    parser.add_argument("--out-dir", default="", help="cartella dove salvare il rapporto (default: accanto alla foto)")
-    parser.add_argument("--worker", default="", help=argparse.SUPPRESS)        # uso interno
-    parser.add_argument("--out", default="", help=argparse.SUPPRESS)           # uso interno
-    args, _ = parser.parse_known_args()      # 'known': ignora eventuali opzioni extra messe da Spyder
+    parser.add_argument("--out-dir", default="", help="folder where to save the report (default: next to the photo)")
+    parser.add_argument("--worker", default="", help=argparse.SUPPRESS)        # internal use
+    parser.add_argument("--out", default="", help=argparse.SUPPRESS)           # internal use
+    args, _ = parser.parse_known_args()      # 'known': ignores any extra options added by Spyder
 
-    # Se sono stato avviato come 'operaio', faccio il mio lavoro e basta.
+    # If I was started as a 'worker', I just do my job.
     if args.worker:
         esegui_worker(args.worker, args)
         return
 
-    # Rende leggibili anche le lettere accentate nelle console Windows (dove possibile).
+    # Makes accented letters readable in Windows consoles too (where possible).
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 
-    # ---- Scelta e controllo della foto ----
+    # ---- Choosing and checking the photo ----
     foto = scegli_foto(args)
     if foto is None or not foto.exists():
-        print("Nessuna foto valida selezionata (o file non trovato). Interrompo.")
+        print("No valid photo selected (or file not found). Stopping.")
         return
     if foto.suffix.lower() not in ESTENSIONI_OK:
-        extra = " Le foto HEIC degli iPhone vanno prima convertite in JPG." if foto.suffix.lower() in (".heic", ".heif") else ""
-        print(f"Formato '{foto.suffix}' non supportato (accettati: {', '.join(ESTENSIONI_OK)}).{extra}")
+        extra = " HEIC photos from iPhones must first be converted to JPG." if foto.suffix.lower() in (".heic", ".heif") else ""
+        print(f"Format '{foto.suffix}' not supported (accepted: {', '.join(ESTENSIONI_OK)}).{extra}")
         return
     repo = Path(args.repo)
     if not repo.exists():
-        print(f"Non trovo la cartella dei progetti: {repo}\nControlla CARTELLA_REPO in cima a questo file.")
+        print(f"Cannot find the projects folder: {repo}\nCheck CARTELLA_REPO at the top of this file.")
         return
     foto = foto.resolve()
 
-    # ---- Cartella dove salvare il rapporto: accanto alla foto, una per ogni analisi ----
+    # ---- Folder where to save the report: next to the photo, one for each analysis -----
     if args.out_dir:
         cartella_out = Path(args.out_dir)
     else:
         cartella_out = foto.parent / f"rapporto_melanoma_{foto.stem}_{time.strftime('%Y%m%d-%H%M%S')}"
     cartella_out.mkdir(parents=True, exist_ok=True)
-    print(f"Foto: {foto}\nTipo: {args.tipo}\nIl rapporto sara' salvato in: {cartella_out}\n")
+    print(f"Photo: {foto}\nType: {args.tipo}\nThe report will be saved in: {cartella_out}\n")
 
     t_inizio = time.time()
     python_app1 = trova_python_venv(repo / CARTELLA_APP1)
     python_vatsal = trova_python_venv(repo / CARTELLA_VATSAL)
-    metodi = []          # lista di (numero, titolo, risultati, introduzione)
+    metodi = []          # list of (number, title, results, introduction)
 
-    # ---- METODO 1: App 1 ----
-    titolo1 = T("App 1 (DeborahAdedigba) - modelli TensorFlow")
+    # ---- METHOD 1: App 1 ----
+    titolo1 = T("App 1 (DeborahAdedigba) - TensorFlow models")
     if USA_APP1 and not args.senza_app1:
-        print("Metodo 1 (App 1): avvio... la prima volta puo' volerci parecchio, i modelli sono grandi.")
+        print("Method 1 (App 1): starting... the first time it may take quite a while, the models are large.")
         py = python_app1 or Path(sys.executable)
-        intro = "" if python_app1 else (T("Attenzione: non ho trovato l'ambiente .venv di App 1, uso il Python corrente."))
+        intro = "" if python_app1 else (T("Warning: I did not find App 1's .venv environment; using the current "
+                                          "Python."))
         r1 = lancia_operaio("app1", py, ["--foto", str(foto), "--tipo", args.tipo, "--repo", str(repo)],
                             TIMEOUT_APP1, cartella_out)
         metodi.append((1, titolo1, r1, intro))
     else:
-        metodi.append((1, titolo1, [nuovo_risultato("App 1", "non_eseguibile", nota=T("Metodo 1 disattivato dalle impostazioni."))], ""))
+        metodi.append((1, titolo1, [nuovo_risultato("App 1", "non_eseguibile", nota=T("Method 1 turned off in the settings."))], ""))
 
-    # ---- METODO 2: SkinSense ----
-    titolo2 = T("SkinSense (servizio online)")
+    # ---- METHOD 2: SkinSense ----
+    titolo2 = T("SkinSense (online service)")
     if USA_SKINSENSE and not args.senza_skinsense:
-        print("Metodo 2 (SkinSense): invio della foto (senza metadati) al servizio online...")
+        print("Method 2 (SkinSense): sending the photo (without metadata) to the online service...")
         py = python_app1 or Path(sys.executable)
         r2 = lancia_operaio("skinsense", py, ["--foto", str(foto), "--url", args.url], TIMEOUT_SKINSENSE, cartella_out)
-        metodi.append((2, titolo2, r2, T("Questo metodo prevede l'invio dei pixel della foto (non dei metadati) a un server esterno.")))
+        metodi.append((2, titolo2, r2, T("This method sends the pixels of the photo (not the metadata) to an "
+                                         "external server.")))
     else:
         metodi.append((2, titolo2, [nuovo_risultato(
             "SkinSense", "non_eseguibile",
-            nota=T("Metodo 2 non eseguito (disattivato nelle impostazioni): la foto non e' uscita dal PC."))], ""))
+            nota=T("Method 2 not run (turned off in the settings): the photo did not leave the PC."))], ""))
 
-    # ---- METODO 3: Melanoma-Detector (nessuna analisi possibile) ----
+    # ---- METHOD 3: Melanoma-Detector (no analysis possible) ----
     metodi.append((3, T("Melanoma-Detector (VukIG)"), [nuovo_risultato(
         "Melanoma-Detector", "non_eseguibile",
-        nota=T("Il metodo 3 NON ha analizzato la foto: il progetto e' un prototipo senza modello. Il suo "
-             "server si limita a ricevere l'immagine (nessuna rete neurale), quindi qualunque testo "
-             "rassicurante mostri non deriva da un'analisi e non ha alcun valore."))], ""))
+        nota=T("Method 3 did NOT analyse the photo: the project is a prototype without a model. Its server "
+               "merely receives the image (no neural network), so any reassuring text it shows does not come "
+               "from an analysis and has no value."))], ""))
 
-    # ---- METODO 4: vatsal30 ----
+    # ---- METHOD 4: vatsal30 ----
     titolo4 = T("vatsal30 / Melanoma-Detection (PyTorch)")
     if USA_VATSAL and not args.senza_vatsal:
-        print("Metodo 4 (vatsal30): avvio...")
+        print("Method 4 (vatsal30): starting...")
         py = python_vatsal or Path(sys.executable)
         r4 = lancia_operaio("vatsal", py, ["--foto", str(foto), "--repo", str(repo)], TIMEOUT_VATSAL, cartella_out)
         metodi.append((4, titolo4, r4, ""))
     else:
-        metodi.append((4, titolo4, [nuovo_risultato("vatsal30", "non_eseguibile", nota=T("Metodo 4 disattivato dalle impostazioni."))], ""))
+        metodi.append((4, titolo4, [nuovo_risultato("vatsal30", "non_eseguibile", nota=T("Method 4 turned off in the settings."))], ""))
 
-    # ---- METODO 5: ukalwa (Android) ----
-    metodi.append((5, T("ukalwa / melanoma-detection (app Android)"), [nuovo_risultato(
+    # ---- METHOD 5: ukalwa (Android) ----
+    metodi.append((5, T("ukalwa / melanoma-detection (Android app)"), [nuovo_risultato(
         "ukalwa", "non_eseguibile",
-        nota=T("Il metodo 5 e' un'app Android: non puo' girare dal PC. Installa l'APK sul telefono, "
-             "inquadra il neo e annota a mano il risultato qui sotto.\n"
-             "Risultato dell'app sul telefono: ______________________________"))], ""))
+        nota=T("Method 5 is an Android app: it cannot run on the PC. Install the APK on the phone, frame the "
+               "mole and note the result by hand below.\n"
+               "App result on the phone: ______________________________"))], ""))
 
-    # ---- Rapporto ----
+    # ---- Report ----
     testo = costruisci_rapporto(foto, args.tipo, metodi, time.time() - t_inizio)
     print("\n" + testo)
-    (cartella_out / "rapporto.txt").write_text(testo, encoding="utf-8-sig")      # utf-8-sig: Blocco Note legge bene gli accenti
+    (cartella_out / "rapporto.txt").write_text(testo, encoding="utf-8-sig")      # utf-8-sig: Notepad reads the accents correctly
     salva_json(cartella_out / "rapporto.json", [
         {"metodo": n, "titolo": t, "introduzione": i, "risultati": r} for n, t, r, i in metodi])
-    print(f"\nRapporto salvato in:\n  {cartella_out / 'rapporto.txt'}\n  {cartella_out / 'rapporto.json'} (versione per computer)")
+    print(f"\nReport saved in:\n  {cartella_out / 'rapporto.txt'}\n  {cartella_out / 'rapporto.json'} (machine-readable version)")
 
 
 if __name__ == "__main__":

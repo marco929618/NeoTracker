@@ -1,30 +1,95 @@
 
 # ==========================================================================================
-# 3. DATI: database SQLite, impostazioni, cartelle
+# 3. DATA: SQLite database, settings, folders
 # ==========================================================================================
-# SQLite è un "database in un file" incluso in Python: niente da installare. Tutti i dati
-# (utenti, nei, foto) stanno in CARTELLA_DATI\neotracker.db. Le foto stanno in CARTELLA_DATI\foto.
+# SQLite is a "database in a file" included in Python: nothing to install. All the data
+# (users, moles, photos) is in CARTELLA_DATI\neotracker.db. The photos are in CARTELLA_DATI\foto.
 
 def percorso_db():
     return Path(CARTELLA_DATI) / "neotracker.db"
 
 
 def adesso():
-    """Data e ora attuali come testo ISO, es. '2026-11-08T10:52:31'."""
+    """Current date and time as ISO text, e.g. '2026-11-08T10:52:31'."""
     return datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
 
 def connetti():
-    """Apre una connessione al database. Ogni richiesta ne apre una propria (è più sicuro)."""
+    """Opens a database connection. Every request opens its own (it is safer)."""
     Path(CARTELLA_DATI).mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(str(percorso_db()), timeout=30)
-    con.row_factory = sqlite3.Row            # permette di leggere le colonne per nome
-    con.execute("PRAGMA foreign_keys = ON")  # se cancelli un utente, spariscono anche i suoi nei
+    con.row_factory = sqlite3.Row            # lets you read the columns by name
+    con.execute("PRAGMA foreign_keys = ON")  # if you delete a user, their moles disappear too
     return con
 
 
+# Databases created by versions up to 1.2 stored the body regions and the suggested sites in Italian
+# (e.g. 'Spalla destra'). From version 1.3 the stored text is the English one ('Shoulder, right'): at start-up
+# the old names are converted with this table (the Italian names are kept here only for this purpose).
+NOMI_SEDI_ITALIANI = {
+    "Addome alto destro": "Upper abdomen, right",
+    "Addome alto sinistro": "Upper abdomen, left",
+    "Addome basso destro": "Lower abdomen, right",
+    "Addome basso sinistro": "Lower abdomen, left",
+    "Avambraccio destro": "Forearm, right",
+    "Avambraccio sinistro": "Forearm, left",
+    "Braccio destro": "Arm, right",
+    "Braccio sinistro": "Arm, left",
+    "Caviglia destra": "Ankle, right",
+    "Caviglia sinistra": "Ankle, left",
+    "Cavo popliteo destro": "Back of knee, right",
+    "Cavo popliteo sinistro": "Back of knee, left",
+    "Collo": "Neck",
+    "Coscia destra": "Thigh, right",
+    "Coscia sinistra": "Thigh, left",
+    "Cuoio capelluto (testa)": "Scalp (head)",
+    "Fronte e cuoio capelluto": "Forehead and scalp",
+    "Gamba (stinco) destra": "Lower leg (shin), right",
+    "Gamba (stinco) sinistra": "Lower leg (shin), left",
+    "Ginocchio destro": "Knee, right",
+    "Ginocchio sinistro": "Knee, left",
+    "Gluteo destro": "Buttock, right",
+    "Gluteo sinistro": "Buttock, left",
+    "Gomito destro": "Elbow, right",
+    "Gomito sinistro": "Elbow, left",
+    "Inguine destro": "Groin, right",
+    "Inguine sinistro": "Groin, left",
+    "Mano destra": "Hand, right",
+    "Mano sinistra": "Hand, left",
+    "Nuca e collo": "Nape and neck",
+    "Orecchio destro": "Ear, right",
+    "Orecchio sinistro": "Ear, left",
+    "Piede destro": "Foot, right",
+    "Piede sinistro": "Foot, left",
+    "Polpaccio destro": "Calf, right",
+    "Polpaccio sinistro": "Calf, left",
+    "Regione lombare destra": "Lower back, right",
+    "Regione lombare sinistra": "Lower back, left",
+    "Regione scapolare destra": "Shoulder blade area, right",
+    "Regione scapolare sinistra": "Shoulder blade area, left",
+    "Schiena (zona media) destra": "Back (middle area), right",
+    "Schiena (zona media) sinistra": "Back (middle area), left",
+    "Spalla destra": "Shoulder, right",
+    "Spalla sinistra": "Shoulder, left",
+    "Torace destro": "Chest, right",
+    "Torace sinistro": "Chest, left",
+    "Viso": "Face",
+    "cuoio capelluto": "scalp",
+    "dorso del piede": "top of the foot",
+    "dorso della mano": "back of the hand",
+    "labbro": "lip",
+    "orecchio": "ear",
+    "palmo della mano": "palm of the hand",
+    "palpebra": "eyelid",
+    "pianta del piede": "sole of the foot",
+    "sotto l'unghia (mano)": "under the nail (hand)",
+    "sotto l'unghia (piede)": "under the nail (foot)",
+    "spazio tra le dita": "between the fingers or toes",
+}
+
+
 def inizializza_db():
-    """Crea le tabelle la prima volta. Se esistono già non fa nulla."""
+    """Creates the tables the first time. If they already exist it does nothing."""
     with connetti() as con:
         con.executescript("""
         CREATE TABLE IF NOT EXISTS utenti (
@@ -40,7 +105,7 @@ def inizializza_db():
             vista      TEXT NOT NULL,                 -- 'fronte' oppure 'retro'
             x          REAL NOT NULL,                 -- posizione sulla mappa, da 0 a 1
             y          REAL NOT NULL,
-            regione    TEXT NOT NULL DEFAULT '',      -- es. 'Torace destro'
+            regione    TEXT NOT NULL DEFAULT '',      -- e.g. 'Chest, right'
             note       TEXT NOT NULL DEFAULT '',
             creato     TEXT NOT NULL,
             archiviato INTEGER NOT NULL DEFAULT 0     -- 1 = tolto dalla mappa ma conservato
@@ -62,25 +127,27 @@ def inizializza_db():
         CREATE INDEX IF NOT EXISTS idx_nevi_utente ON nevi(utente_id);
         CREATE INDEX IF NOT EXISTS idx_foto_nevo   ON foto(nevo_id);
         """)
-        # se all'avvio ci sono analisi rimaste "in corso" (app chiusa a metà), le segno interrotte
-        con.execute("UPDATE foto SET stato_analisi='errore', messaggio='Analisi interrotta (app chiusa).' "
-                    "WHERE stato_analisi IN ('in_corso', 'in_coda')")
+        # if at start-up some analyses are left "in progress" (app closed halfway), mark them as interrupted
+        con.execute("UPDATE foto SET stato_analisi='errore', messaggio=? WHERE stato_analisi IN ('in_corso', 'in_coda')",
+                    (T("Analysis interrupted (app closed)."),))
+        for vecchio, nuovo in NOMI_SEDI_ITALIANI.items():           # old Italian names -> English names
+            con.execute("UPDATE nevi SET regione=? WHERE regione=?", (nuovo, vecchio))
 
 
 def riga_a_dict(riga):
     return dict(riga) if riga is not None else None
 
 
-# ---- impostazioni (chiavi API, posizione, interruttori) -----------------------------------
+# ---- settings (API keys, location, switches) ----------------------------------------------
 IMPOSTAZIONI_PREDEFINITE = {
-    "avvertenze_accettate": "",   # versione dell'avviso iniziale già accettata (vuoto = non ancora accettato)
-    "fonte_uv": "open-meteo",     # da dove arriva l'indice UV: "open-meteo" (predefinita, gratis, senza chiave) oppure "openweather"
-    "openweather_key": "",        # la tua chiave OpenWeather (serve solo se scegli OpenWeather; resta solo in questo PC)
-    "usa_skinsense": False,       # se True la foto viene inviata a SkinSense (servizio online)
-    "lat": None, "lon": None,     # posizione per l'indice UV
-    "localita": "",               # nome del posto (es. 'Torino, IT')
-    "ncbi_email": "",             # facoltativo: la tua email per cortesia verso PubMed
-    "lingua": "auto",             # lingua dell'interfaccia: "auto" (come il sistema/browser) oppure it, en, fr, de, es
+    "avvertenze_accettate": "",   # version of the start-up notice already accepted (empty = not accepted yet)
+    "fonte_uv": "open-meteo",     # where the UV index comes from: "open-meteo" (default, free, no key) or "openweather"
+    "openweather_key": "",        # your OpenWeather key (only needed if you choose OpenWeather; it stays only on this PC)
+    "usa_skinsense": False,       # if True the photo is sent to SkinSense (online service)
+    "lat": None, "lon": None,     # location for the UV index
+    "localita": "",               # name of the place (e.g. 'Torino, IT')
+    "ncbi_email": "",             # optional: your email, as a courtesy to PubMed
+    "lingua": "auto",             # interface language: "auto" (same as the system/browser) or en, it, fr, de, es
 }
 _blocco_impostazioni = threading.Lock()
 
@@ -98,9 +165,9 @@ def leggi_impostazioni():
 
 def lingua_corrente():
     """
-    Lingua da usare fuori dal browser (per esempio nelle finestrelle di errore all'avvio): quella scelta
-    nelle Impostazioni oppure, con "auto", quella del sistema. Se il sistema usa una lingua non
-    supportata si ripiega sull'inglese.
+    Language to use outside the browser (for example in the start-up error windows): the one chosen
+    in Settings or, with "auto", the one of the system. If the system uses an unsupported
+    language, English is used.
     """
     scelta = leggi_impostazioni().get("lingua")
     if scelta in LINGUE:
@@ -109,7 +176,7 @@ def lingua_corrente():
     try:
         import locale
         codice = (locale.getlocale()[0] or os.environ.get("LANG") or "")[:2].lower()
-        if os.name == "nt":                       # lingua dell'interfaccia di Windows (più affidabile)
+        if os.name == "nt":                       # Windows interface language (more reliable)
             import ctypes
             codice = {0x10: "it", 0x09: "en", 0x0C: "fr", 0x07: "de", 0x0A: "es"}.get(
                 ctypes.windll.kernel32.GetUserDefaultUILanguage() & 0x3FF, codice)
@@ -119,7 +186,7 @@ def lingua_corrente():
 
 
 def salva_impostazioni(nuove):
-    """Aggiorna solo i campi ammessi e salva su file."""
+    """Updates only the allowed fields and saves to file."""
     with _blocco_impostazioni:
         dati = leggi_impostazioni()
         for k in IMPOSTAZIONI_PREDEFINITE:
@@ -130,13 +197,13 @@ def salva_impostazioni(nuove):
         provvisorio = destinazione.with_suffix(".json.tmp")
         provvisorio.write_text(json.dumps(dati, ensure_ascii=False, indent=2), encoding="utf-8")
         if os.name != "nt":
-            os.chmod(provvisorio, 0o600)          # il file contiene la tua chiave: leggibile solo da te (Linux/Mac)
-        os.replace(provvisorio, destinazione)     # sostituzione "tutta d'un colpo": un'interruzione non lascia un file a metà
+            os.chmod(provvisorio, 0o600)          # the file contains your key: readable only by you (Linux/Mac)
+        os.replace(provvisorio, destinazione)     # replace "all at once": an interruption does not leave a half-written file
         return dati
 
 
 def impostazioni_pubbliche():
-    """Versione per il browser: la chiave segreta NON viene mai restituita, solo se c'è."""
+    """Version for the browser: the secret key is NEVER returned, only whether it is there."""
     d = leggi_impostazioni()
     chiave = d.get("openweather_key") or ""
     d["ha_chiave_owm"] = bool(chiave)

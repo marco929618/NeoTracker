@@ -1,24 +1,24 @@
 /* ============================================================================
-   app.js - avvio, menu, scelta pagina e utente corrente
+   app.js - start-up, menu, page choice and current user
    ============================================================================ */
 (function () {
   'use strict';
   const NT = window.NT, S = NT.S, h = NT.h, $ = NT.$;
 
   const VOCI = [
-    ['mappa', NT.t('Mappa dei nei'), 'mappa'], ['profilo', NT.t('Profilo'), 'profilo'], ['letteratura', NT.t('Letteratura'), 'letteratura'],
-    ['genetica', NT.t('Genetica'), 'genetica'], ['uv', NT.t('Indice UV'), 'uv'], ['impostazioni', NT.t('Impostazioni'), 'impostazioni'],
+    ['mappa', NT.t('Mole map'), 'mappa'], ['profilo', NT.t('Profile'), 'profilo'], ['letteratura', NT.t('Literature'), 'letteratura'],
+    ['genetica', NT.t('Genetics'), 'genetica'], ['uv', NT.t('UV index'), 'uv'], ['impostazioni', NT.t('Settings'), 'impostazioni'],
   ];
 
   NT.colorePerNome = nome => { let x = 0; for (const c of nome) x = (x * 31 + c.charCodeAt(0)) % 360; return 'hsl(' + x + ',45%,38%)'; };
-  /* Cerchio con l'immagine personale dell'utente (se l'ha scelta) oppure con l'iniziale del nome.
-     "utente" e' facoltativo: serve solo ad avere id e versione dell'immagine (avatar_v, 0 = nessuna). */
+  /* Circle with the user's personal image (if they chose one) or with the initial of their name.
+     "utente" is optional: it only serves to have the id and version of the image (avatar_v, 0 = none). */
   NT.avatar = (nome, dim, utente) => {
     const d = dim || 32, iniziale = (nome.trim()[0] || '?').toUpperCase();
     const cerchio = h('span', { class: 'avatar', style: { background: NT.colorePerNome(nome), width: d + 'px', height: d + 'px', fontSize: Math.round(d * 0.45) + 'px' } }, iniziale);
     if (utente && utente.avatar_v) {
       const img = h('img', { class: 'avatar-img', alt: '', draggable: 'false', src: '/api/utenti/' + utente.id + '/avatar?v=' + utente.avatar_v });
-      img.addEventListener('error', () => cerchio.replaceChildren(iniziale));         // se l'immagine manca, torna l'iniziale
+      img.addEventListener('error', () => cerchio.replaceChildren(iniziale));         // if the image is missing, it falls back to the initial
       cerchio.replaceChildren(img);
     }
     return cerchio;
@@ -29,19 +29,19 @@
 
   function disegnaTestata(attiva) {
     const menu = $('#menu');
-    menu.setAttribute('aria-label', NT.t('Sezioni'));
-    $('#piede').textContent = NT.t('NeoTracker non è uno strumento medico e non fa diagnosi. Per qualsiasi neo che cambia, sanguina, prude o ti preoccupa, rivolgiti a un dermatologo.');
+    menu.setAttribute('aria-label', NT.t('Sections'));
+    $('#piede').textContent = NT.t('NeoTracker is not a medical tool and does not make diagnoses. For any mole that changes, bleeds, itches or worries you, see a dermatologist.');
     menu.replaceChildren(...VOCI.map(([id, testo, ico]) =>
       h('a', { href: '#/' + id, class: 'voce' + (id === attiva ? ' attiva' : ''), 'aria-current': id === attiva ? 'page' : null }, NT.icona(ico, 18), h('span', {}, testo))));
     const box = $('#utente-box');
     box.replaceChildren(S.utente
-      ? h('a', { href: '#/utenti', class: 'utente-chip', title: NT.t('Cambia utente') }, NT.avatar(S.utente.nome, 28, S.utente),
-        h('span', { class: 'utente-nome' }, S.utente.nome), h('span', { class: 'utente-cambia' }, NT.t('Cambia')))
-      : h('a', { href: '#/utenti', class: 'utente-chip' }, h('span', { class: 'utente-nome' }, NT.t('Scegli utente'))));
+      ? h('a', { href: '#/utenti', class: 'utente-chip', title: NT.t('Switch user') }, NT.avatar(S.utente.nome, 28, S.utente),
+        h('span', { class: 'utente-nome' }, S.utente.nome), h('span', { class: 'utente-cambia' }, NT.t('Change')))
+      : h('a', { href: '#/utenti', class: 'utente-chip' }, h('span', { class: 'utente-nome' }, NT.t('Choose user'))));
   }
 
   async function route() {
-    NT.pulizie.splice(0).forEach(f => { try { f(); } catch (e) { /* ignora */ } });
+    NT.pulizie.splice(0).forEach(f => { try { f(); } catch (e) { /* ignore */ } });
     let nome = nomeRotta();
     const serveUtente = ['mappa', 'profilo', 'genetica'];
     if (!S.utente && serveUtente.includes(nome)) nome = 'utenti';
@@ -53,8 +53,8 @@
     try { await NT.viste[nome](cont); }
     catch (e) {
       console.error(e);
-      cont.replaceChildren(h('div', { class: 'scheda errore-pagina' }, h('h2', {}, NT.t('Qualcosa non ha funzionato')), h('p', {}, e.message || String(e)),
-        h('button', { class: 'btn', onclick: () => route() }, NT.t('Riprova'))));
+      cont.replaceChildren(h('div', { class: 'scheda errore-pagina' }, h('h2', {}, NT.t('Something went wrong')), h('p', {}, e.message || String(e)),
+        h('button', { class: 'btn', onclick: () => route() }, NT.t('Try again'))));
     }
     window.scrollTo(0, 0);
   }
@@ -78,35 +78,35 @@
     return S.nei;
   };
 
-  /* ---- "battito": ogni pochi secondi la pagina dice al programma "sono ancora aperta" ----
-     Quando la finestra viene chiusa i battiti finiscono (e parte un ultimo messaggio di "addio"):
-     il programma capisce che può spegnersi. Ogni pagina ha un numero casuale, così più finestre
-     aperte insieme non si confondono. */
+  /* ---- "heartbeat": every few seconds the page tells the program "I am still open" ----
+     When the window is closed the heartbeats stop (and a last "goodbye" message is sent):
+     the program understands that it can shut down. Each page has a random number, so several windows
+     open at the same time do not get mixed up. */
   const nuovoId = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
     : String(Date.now()) + Math.random().toString(36).slice(2);
   let ID_PAGINA = nuovoId();
-  NT.battitoAttivo = true;                       // diventa false dopo "Chiudi NeoTracker" (non deve più battere)
+  NT.battitoAttivo = true;                       // becomes false after "Close NeoTracker" (it must not beat any more)
   function segnale(percorso) {
     if (!NT.battitoAttivo && percorso === '/api/battito') return;
     try {
-      // keepalive: la richiesta parte anche mentre la pagina si sta chiudendo
+      // keepalive: the request goes out even while the page is closing
       fetch(percorso, { method: 'POST', keepalive: true,
         headers: { 'Content-Type': 'application/json', 'X-NeoTracker': '1' },
-        body: JSON.stringify({ id: ID_PAGINA }) }).catch(() => { /* programma già spento: va bene */ });
-    } catch (e) { /* ignora */ }
+        body: JSON.stringify({ id: ID_PAGINA }) }).catch(() => { /* program already shut down: fine */ });
+    } catch (e) { /* ignore */ }
   }
-  // Connessione di presenza: resta aperta finché la pagina è aperta. Quando la finestra si chiude
-  // (in qualunque modo) il programma lo nota subito. Si riconnette da sola se cade.
+  // Presence connection: it stays open as long as the page is open. When the window closes (in any way) the
+  // program notices at once. It reconnects by itself if it drops.
   function apriPresenza() {
-    if (NT.presenza) { try { NT.presenza.close(); } catch (e) { /* ignora */ } }
+    if (NT.presenza) { try { NT.presenza.close(); } catch (e) { /* ignore */ } }
     try { NT.presenza = new EventSource('/api/presenza?id=' + encodeURIComponent(ID_PAGINA)); } catch (e) { NT.presenza = null; }
   }
   apriPresenza();
   segnale('/api/battito');
   setInterval(() => segnale('/api/battito'), 5000);
   window.addEventListener('pageshow', ev => {
-    // Se il browser ci "risveglia" da una copia messa da parte (ev.persisted), il programma aveva già
-    // ricevuto l'addio: ci presentiamo come una pagina nuova, con un numero nuovo.
+    // If the browser "wakes" us from a copy set aside (ev.persisted), the program had already received the
+    // goodbye: we present ourselves as a new page, with a new number.
     if (ev.persisted) { ID_PAGINA = nuovoId(); apriPresenza(); }
     segnale('/api/battito');
   });
@@ -119,13 +119,13 @@
       const ultimo = parseInt(NT.ls.leggi('nt_utente') || '', 10);
       if (ultimo && S.utenti.some(u => u.id === ultimo)) await NT.scegliUtente(ultimo, false);
     } catch (e) {
-      $('#vista').replaceChildren(h('div', { class: 'scheda errore-pagina' }, h('h2', {}, NT.t('NeoTracker non risponde')), h('p', {}, e.message)));
+      $('#vista').replaceChildren(h('div', { class: 'scheda errore-pagina' }, h('h2', {}, NT.t('NeoTracker is not responding')), h('p', {}, e.message)));
       return;
     }
     window.addEventListener('hashchange', route);
     if (!location.hash || location.hash === '#') location.hash = S.utente ? '#/mappa' : '#/utenti';
     else route();
-    if (S.imp.avvertenze_accettate !== S.stato.avvertenze_versione) NT.mostraAvvertenze();     // primo avvio (o avviso aggiornato)
+    if (S.imp.avvertenze_accettate !== S.stato.avvertenze_versione) NT.mostraAvvertenze();     // first start (or updated notice)
   }
   avvia();
 })();
