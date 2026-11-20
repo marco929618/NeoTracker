@@ -1,27 +1,27 @@
 ---
-name: Segnalazione di un problema
-about: Qualcosa non funziona
+name: Bug report
+about: Something does not work
 labels: bug
 ---
 
-> ⚠️ **Non allegare foto di nei, dati sanitari o dati personali.** Usa immagini e dati inventati.
-> Per problemi di sicurezza **non** usare questo modulo: vedi SECURITY.md.
+> ⚠️ **Do not attach photos of moles, health data or personal data.** Use made-up images and data.
+> For security problems do **not** use this form: see SECURITY.md.
 
-**Che cosa è successo?**
+**What happened?**
 
-**Che cosa ti aspettavi?**
+**What did you expect?**
 
-**Come si riproduce?**
+**How can it be reproduced?**
 1.
 2.
 
-**Ambiente**
-- Windows (versione):
+**Environment**
+- Windows (version):
 - Python (`py --version`):
-- Browser usato per la finestra (Edge/Chrome):
-- Versione di NeoTracker (Impostazioni, in fondo):
-- Pillow installato? (`py -m pip show pillow`):
+- Browser used for the window (Edge/Chrome):
+- NeoTracker version (Settings, at the bottom):
+- Is Pillow installed? (`py -m pip show pillow`):
 
-**Messaggi** (dal file `neotracker.log`, **senza** dati personali)
+**Messages** (from the `neotracker.log` file, **without** personal data)
 ```
 ```

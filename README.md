@@ -1,53 +1,52 @@
 # NeoTracker
 
-**Mappa del corpo, storico fotografico dei nei, analisi con più modelli, letteratura, genetica e indice UV: tutto sul tuo computer.**
+**Body map, photo history of your moles, multi-model analysis, literature, genetics and UV index: all on your own computer.**
 
 [![CI](https://github.com/marco929618/NeoTracker/actions/workflows/ci.yml/badge.svg)](https://github.com/marco929618/NeoTracker/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/marco929618/NeoTracker/actions/workflows/codeql.yml/badge.svg)](https://github.com/marco929618/NeoTracker/actions/workflows/codeql.yml)
-[![Licenza: GPL v3+](https://img.shields.io/badge/licenza-GPL--3.0--or--later-blue.svg)](LICENSE)
+[![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
 
-> ⚠️ **NeoTracker non è un dispositivo medico e non fa diagnosi.** I modelli usati sono prototipi di ricerca
-> non validati: possono sbagliare in entrambe le direzioni. Un neo che cambia, sanguina, prude o ti preoccupa va
-> mostrato a un dermatologo, qualunque cosa dica il programma. Leggi [DISCLAIMER.md](DISCLAIMER.md).
-> *English summary: [README.en.md](README.en.md).*
+> ⚠️ **NeoTracker is NOT a medical device and does NOT diagnose.** The models it uses are unvalidated research
+> prototypes and can be wrong in both directions. Any mole that changes, bleeds, itches or worries you must be
+> shown to a dermatologist, whatever the program says. Read [DISCLAIMER.md](DISCLAIMER.md).
 
 <p align="center">
-  <img src="docs/immagini/06_neo_dettaglio.png" alt="Scheda di un neo con storico fotografico" width="46%">
-  <img src="docs/immagini/03_profilo.png" alt="Profilo con fenotipo e familiarità" width="46%">
+  <img src="docs/images/06_mole_detail.png" alt="Mole page with photo history" width="46%">
+  <img src="docs/images/03_profile.png" alt="Profile with phenotype and family history" width="46%">
 </p>
 
-*(Schermate con dati inventati.)*
+*(Screenshots with made-up data.)*
 
-## Che cosa fa
+## What it does
 
-- **Cinque lingue**: italiano, inglese, francese, tedesco e spagnolo. L'interfaccia parte nella lingua del sistema e si
-  cambia in *Impostazioni → Lingua* (vale per tutti gli utenti). Tradotti anche mappa del corpo, avvertenze, criteri
-  genetici e scheda stampabile; fa fede il testo italiano delle avvertenze legali.
-- **Più utenti** sullo stesso PC, ciascuno con la propria **immagine personale** facoltativa, profilo (fototipo, capelli,
-  occhi, nei, familiarità) e dati separati.
-- **Mappa interattiva del corpo** (fronte e retro): clicchi dove sta il neo e il punto resta salvato con precisione.
-- **Storico fotografico** per ogni neo: foto originali conservate senza modifiche, con data, diametro e note;
-  confronto tra due date; **scheda stampabile** per il dermatologo.
-- **Analisi automatica** di ogni foto con tutti i metodi installati (`melanoma_batch.py`), con un rapporto che dice
-  cosa ha risposto ciascun metodo.
-- **Letteratura scientifica** (PubMed) su riconoscimento dei nei e melanoma ereditario, e **criteri per valutare una
-  consulenza genetica** (geni CDKN2A, CDK4, ecc.).
-- **Indice UV** del giorno nel tuo luogo (Open-Meteo, gratuito e senza chiave; OpenWeather a scelta) con i tempi
-  prudenti di esposizione per fototipo.
-- **Finestra di programma vera**: niente barra degli indirizzi, icona nella barra delle applicazioni, si spegne
-  da solo quando la chiudi. Funziona in locale (`127.0.0.1`): **nessun account, nessun server, nessuna telemetria**.
+- **Five languages**: English, Italian, French, German and Spanish. The interface starts in your system language and is
+  changed in *Settings → Language* (it applies to all users). The body map, notices, genetic criteria and the printable
+  sheet are translated too; the English text of the legal notices prevails.
+- **Several users** on the same PC, each with an optional **personal picture**, a profile (phototype, hair, eyes, moles,
+  family history) and separate data.
+- **Interactive body map** (front and back): click where the mole is and the point is saved precisely.
+- **Photo history** for each mole: original photos kept unmodified, with date, diameter and notes; comparison of two
+  dates; **printable sheet** for the dermatologist.
+- **Automatic analysis** of each photo with all the installed methods (`melanoma_batch.py`), with a report saying what
+  each method answered.
+- **Scientific literature** (PubMed) on mole recognition and hereditary melanoma, and **criteria to evaluate genetic
+  counselling** (CDKN2A, CDK4 genes, etc.).
+- **UV index** of the day for your location (Open-Meteo, free and keyless; OpenWeather optional) with conservative
+  sun-exposure times by phototype.
+- **A real program window**: no address bar, icon in the taskbar, it shuts itself down when you close it. It works
+  locally (`127.0.0.1`): **no account, no server, no telemetry**.
 
-## Requisiti
+## Requirements
 
-- Windows 10/11 con **Edge** o **Chrome** (già presenti di solito) e **Python 3.9+** ([python.org](https://www.python.org/downloads/), spunta *Add python.exe to PATH*).
-- Consigliato: `py -m pip install -U "pillow>=10.3.0"` (anteprime e rotazione delle foto).
-- Per l'**analisi dei nei** servono i progetti di terzi, installati da `tools/install_melanoma_repos.ps1`
-  (vedi [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)): richiedono qualche GB e un po' di pazienza.
-  **Senza di essi NeoTracker funziona lo stesso** (mappa, storico, UV, letteratura): manca solo l'analisi.
+- Windows 10/11 with **Edge** or **Chrome** (usually already present) and **Python 3.9+** ([python.org](https://www.python.org/downloads/), tick *Add python.exe to PATH*).
+- Recommended: `py -m pip install -U "pillow>=10.3.0"` (photo previews and rotation).
+- For the **mole analysis** you need the third-party projects, installed by `tools/install_melanoma_repos.ps1`
+  (see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)): they take a few GB and some patience.
+  **Without them NeoTracker still works** (map, history, UV, literature): only the analysis is missing.
 
-Funziona anche su Linux/macOS con un browser Chromium, ma è sviluppato e provato soprattutto per Windows.
+It also works on Linux/macOS with a Chromium browser, but it is developed and tested mainly for Windows.
 
-## Avvio rapido
+## Quick start
 
 ```bat
 git clone https://github.com/marco929618/NeoTracker.git
@@ -55,57 +54,57 @@ cd NeoTracker
 py -3 neotracker.py
 ```
 
-La prima volta compare un avviso (non è uno strumento medico) da accettare. Per avere l'icona sul Desktop,
-doppio clic su `Crea_scorciatoia_Desktop.bat`. Se qualcosa non va, `NeoTracker.bat` mostra i messaggi del programma e
-il file `neotracker.log` nella cartella dei dati racconta cosa è successo.
+The first time, a notice (it is not a medical tool) appears and must be accepted. To get the icon on the Desktop,
+double-click `Crea_scorciatoia_Desktop.bat`. If something goes wrong, `NeoTracker.bat` shows the program messages and
+the `neotracker.log` file in the data folder tells you what happened.
 
-**I tuoi dati** stanno in `%USERPROFILE%\melanoma-repos\NeoTracker_dati` (cambiabile con la variabile d'ambiente
-`NEOTRACKER_DATI`). Per il backup copia quella cartella. Non fanno parte del repository e il `.gitignore` li esclude.
+**Your data** lives in `%USERPROFILE%\melanoma-repos\NeoTracker_dati` (it can be changed with the `NEOTRACKER_DATI`
+environment variable). To back up, copy that folder. It is not part of the repository and `.gitignore` excludes it.
 
-## Analisi dei nei: installare i metodi
+## Mole analysis: installing the methods
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\install_melanoma_repos.ps1
 ```
 
-Clona i repository originali (ognuno con la sua licenza) in `%USERPROFILE%\melanoma-repos`, prepara un ambiente
-virtuale per ciascuno e scarica i modelli. Poi, in NeoTracker, apri un neo, carica una foto e lascia spuntata
-*«Analizza»*. Da riga di comando: `py melanoma_batch.py --foto "C:\percorso\neo.jpg"`.
+It clones the original repositories (each with its own licence) into `%USERPROFILE%\melanoma-repos`, prepares a virtual
+environment for each and downloads the models. Then, in NeoTracker, open a mole, upload a photo and leave
+*Analyse this photo* ticked. From the command line: `py melanoma_batch.py --foto "C:\path\mole.jpg"`.
 
-> Il metodo **SkinSense** invia la foto a un servizio online di terzi: è **disattivato di default** e lo attivi tu nelle
-> Impostazioni. Prima dell'invio la foto viene ricodificata senza metadati (niente GPS).
+> The **SkinSense** method sends the photo to a third-party online service: it is **off by default** and you turn it on
+> in Settings. Before sending, the photo is re-encoded without metadata (no GPS).
 
-## Privacy e sicurezza in breve
+## Privacy and security in brief
 
-- Tutto resta sul tuo PC; escono solo le richieste che attivi tu → [PRIVACY.md](PRIVACY.md).
-- Server solo su `127.0.0.1`, chiave di sessione casuale, CSP rigida, caricamenti controllati → [SECURITY.md](SECURITY.md).
-- I dati sulla salute **non sono cifrati** dal programma: usa BitLocker e un account con password.
+- Everything stays on your PC; only the requests you turn on leave it → [PRIVACY.md](PRIVACY.md).
+- Server only on `127.0.0.1`, random session key, strict CSP, checked uploads → [SECURITY.md](SECURITY.md).
+- Health data is **not encrypted** by the program: use BitLocker and an account with a password.
 
-## Sviluppo
+## Development
 
 ```text
-src/          pezzi del programma (Python)          web/    pagina (HTML, CSS, JavaScript)
-build.py      unisce tutto in un solo file          tests/  prove automatiche
-neotracker.py il programma pronto da eseguire (generato: non modificarlo a mano)
+src/          parts of the program (Python)         web/    page (HTML, CSS, JavaScript)
+build.py      joins everything into a single file   tests/  automated tests
+neotracker.py the ready-to-run program (generated: do not edit it by hand)
 ```
 
 ```bash
-python build.py                       # rigenera neotracker.py da src/ e web/
-python tests/test_sicurezza.py        # prove di sicurezza (nessuna dipendenza esterna oltre a Pillow)
-python tests/test_finestra.py         # ciclo di vita della finestra
-python tests/test_api.py              # prova completa del backend con servizi finti
-python tests/test_i18n.py             # lingue: dizionari completi, impostazione, pagina servita
-python tools/traduzioni.py            # controlla che ogni testo sia tradotto in tutte le lingue
+python build.py                       # regenerates neotracker.py from src/ and web/
+python tests/test_sicurezza.py        # security tests (no external dependency apart from Pillow)
+python tests/test_finestra.py         # window life cycle
+python tests/test_api.py              # full backend test with mock services
+python tests/test_i18n.py             # languages: complete dictionaries, setting, served page
+python tools/traduzioni.py            # checks that every text is translated into all languages
 ```
 
-`tests/e2e.py`, `tests/e2e_lingue.py` e `tests/test_vita.py` provano l'app in un vero browser e richiedono Playwright e Chrome
-(vedi [tests/README.md](tests/README.md)). Il programma usa solo la libreria standard di Python (Pillow è facoltativo).
+`tests/e2e.py`, `tests/e2e_lingue.py` and `tests/test_vita.py` test the app in a real browser and need Playwright and
+Chrome (see [tests/README.md](tests/README.md)). The program uses only the Python standard library (Pillow is optional).
 
-Contributi benvenuti: leggi [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributions are welcome: read [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Licenza
+## License
 
-[GNU General Public License v3.0 o successiva](LICENSE). Componenti e servizi di terze parti con le loro condizioni:
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Se usi NeoTracker in un lavoro di ricerca, vedi [CITATION.cff](CITATION.cff).
+[GNU General Public License v3.0 or later](LICENSE). Third-party components and services with their own terms:
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). If you use NeoTracker in research work, see [CITATION.cff](CITATION.cff).
 
-Dati dell'indice UV: [Open-Meteo.com](https://open-meteo.com/) (CC BY 4.0, uso non commerciale).
+UV index data: [Open-Meteo.com](https://open-meteo.com/) (CC BY 4.0, non-commercial use).

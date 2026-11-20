@@ -1,83 +1,56 @@
-# Avvertenze mediche e finalità d'uso / Medical disclaimer and intended use
+# Medical disclaimer and intended use
 
-> **NeoTracker NON è un dispositivo medico e NON fa diagnosi.**
 > **NeoTracker is NOT a medical device and does NOT provide diagnoses.**
 
-## Italiano
+## What it is (and what it is not)
 
-### Che cos'è (e che cosa non è)
+NeoTracker is a program for **personal and research use**. It lets you:
 
-NeoTracker è un programma di **uso personale e di ricerca**. Serve a:
+- mark the position of your moles on a body map;
+- keep dated photos of each mole, to compare them over time;
+- run a few **experimental models** found on GitHub on those photos and summarise their results in a
+  report, to be used only as a personal reminder;
+- browse the public scientific literature (PubMed) and the criteria used by geneticists in a convenient way.
 
-- segnare la posizione dei nei su una mappa del corpo;
-- conservare le foto di ciascun neo, con la data, per confrontarle nel tempo;
-- far girare sulle foto alcuni **modelli sperimentali** trovati su GitHub e riassumerne i risultati in un
-  rapporto, da usare solo come promemoria personale;
-- consultare in modo agevole la letteratura scientifica pubblica (PubMed) e i criteri usati dai genetisti.
+It is **not** designed, validated, certified or approved to diagnose, exclude, monitor, predict or treat any
+disease. It is not CE-marked and is not approved by the FDA or any other authority. The developers make no
+medical claim and promise no medical purpose.
 
-**Non è** progettato, validato, certificato né approvato per diagnosticare, escludere, monitorare, prevedere
-o trattare alcuna malattia. Non è marcato CE e non è approvato da FDA o da altre autorità.
-Gli sviluppatori non dichiarano e non promettono alcuna finalità medica.
+## Limits of the results
 
-### Limiti dei risultati
+- The models used are **research prototypes**, not clinically validated, trained on photos that differ from
+  those taken with a phone (light, distance, camera and skin type change the answer).
+- They can be wrong **in both directions**: a "no alarm" result does **not** rule out a melanoma; a "needs
+  attention" result does **not** mean there is one.
+- Skin phototype, age and family history do **not** change the output of the neural networks: they only give context.
+- The "risk", "literature" and "genetics" sections are **general information**, not advice. The genetic criteria
+  shown are those found in the literature and do not replace the opinion of a geneticist.
+- The UV index and the exposure times are **conservative estimates** based on data from third-party weather services.
 
-- I modelli usati sono **prototipi di ricerca**, non validati clinicamente, addestrati su foto diverse
-  da quelle scattate da un telefono (luce, distanza, fotocamera e tipo di pelle cambiano la risposta).
-- Possono sbagliare **in entrambe le direzioni**: un «nessun allarme» **non esclude** un melanoma;
-  un «da attenzionare» **non significa** che ci sia.
-- Fototipo, età e familiarità **non cambiano** il risultato delle reti neurali: servono solo a dare contesto.
-- Le sezioni «rischio», «letteratura» e «genetica» sono **informazione divulgativa**, non una consulenza.
-  I criteri genetici riportati sono quelli di letteratura e non sostituiscono il parere di un genetista.
-- L'indice UV e i tempi di esposizione sono **stime prudenti** basate su dati di servizi meteo di terzi.
+## What to do
 
-### Che cosa fare
+- A mole that **changes** (asymmetry, borders, colour, diameter > 6 mm, evolution), bleeds, itches, crusts or
+  **worries you** must be shown to a **dermatologist**, whatever the program says.
+- Periodic dermatological checks, with dermoscopy, **cannot be replaced** by this software.
+- In an emergency, contact your doctor or the emergency services.
 
-- Un neo che **cambia** (asimmetria, bordi, colore, diametro > 6 mm, evoluzione), che sanguina, prude, fa
-  crosta o **ti preoccupa** va mostrato a un **dermatologo**, qualunque cosa dica il programma.
-- Il controllo dermatologico periodico, con dermoscopia, **non è sostituibile** da questo software.
-- In caso di urgenza rivolgiti al tuo medico o ai servizi di emergenza.
+## Liability
 
-### Responsabilità
+The software is provided "as is", without warranty of any kind (see the GPL-3.0 licence, sections 15 and 16).
+By using it you accept that the authors are not responsible for health decisions taken on the basis of its results.
 
-Il software è fornito «così com'è», senza garanzie di alcun tipo (vedi licenza GPL-3.0, sezioni 15 e 16).
-Usandolo accetti che gli autori non rispondono di decisioni sanitarie prese in base ai suoi risultati.
+## For anyone who wants to redistribute it or use it in a healthcare setting
 
-### Per chi vuole ridistribuirlo o usarlo in ambito sanitario
+Software intended to diagnose or to support clinical decisions is, in the European Union, a **medical device**
+(Regulation (EU) 2017/745, MDR) and may be one in the United States according to the FDA: it requires conformity
+assessment, risk management, clinical evaluation and marking. **This project has none of these.** If you integrate
+it into a patient-facing service or a clinical study, or offer it as a screening tool, the regulatory responsibility
+is yours: quoting this notice is not enough. Do not describe the program, in the material that accompanies it, as a
+diagnostic or screening tool, or as an "artificial intelligence that recognises melanoma".
 
-Un software destinato a diagnosticare o supportare decisioni cliniche è, nell'Unione europea, un
-**dispositivo medico** (Regolamento (UE) 2017/745, MDR) e negli Stati Uniti può esserlo secondo la FDA: richiede
-valutazione di conformità, gestione del rischio, valutazione clinica e marcatura. **Questo progetto non
-le ha.** Se lo integri in un servizio per pazienti, in uno studio clinico o lo proponi come strumento di
-screening, la responsabilità regolatoria è tua: non basta citare questo avviso. Non descrivere il programma, nei
-materiali che lo accompagnano, come strumento diagnostico, di screening o «di intelligenza artificiale che
-riconosce il melanoma».
+## Interface languages
 
-### Lingue dell'interfaccia
+The program is also translated into Italian, French, German and Spanish for convenience. Translations may contain
+mistakes: **in case of doubt or discrepancy the English text prevails** for the notices, criteria and medical information.
 
-Il programma è tradotto in inglese, francese, tedesco e spagnolo per comodità. Le traduzioni possono contenere errori:
-**in caso di dubbio o di differenze fa fede il testo italiano** delle avvertenze, dei criteri e delle informazioni mediche.
-
-*Questo documento non è consulenza legale.*
-
-## English
-
-NeoTracker is a **personal / research tool**. It lets you mark moles on a body map, keep dated photos of each
-mole, run a few **experimental open-source models** on them and browse public literature (PubMed) and
-hereditary-melanoma criteria. It is **not a medical device**, it is **not CE-marked or FDA-cleared**, it does
-**not diagnose**, and it **must not** be used to decide whether to seek medical care.
-
-- The models are unvalidated research prototypes. They can be wrong both ways: "no alarm" does **not** rule out
-  melanoma; "needs attention" does **not** mean there is one.
-- Any mole that changes, bleeds, itches or worries you should be examined by a **dermatologist**, whatever the
-  software says. It cannot replace periodic professional skin checks.
-- Software intended to diagnose or inform clinical decisions is regulated as a medical device (EU MDR
-  2017/745, FDA). This project has no such conformity assessment. Anyone redistributing it for clinical or
-  patient-facing use bears the regulatory responsibility and should not market it as diagnostic or screening software.
-- Provided "as is" without warranty (GPL-3.0 §15–16).
-
-### Interface languages
-
-The app is also translated into English, French, German and Spanish for convenience. Translations may contain mistakes:
-**in case of doubt or discrepancy the Italian text prevails** for the notices, criteria and medical information.
-
-*This is not legal advice.*
+*This document is not legal advice.*

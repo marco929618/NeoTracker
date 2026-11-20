@@ -1,88 +1,87 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: GPL-3.0-or-later
-# NeoTracker - Copyright (C) 2026 gli autori di NeoTracker.
-# Software libero: puoi ridistribuirlo e/o modificarlo secondo i termini della GNU General Public License
-# versione 3 o successiva. Nessuna garanzia, nemmeno di idoneità a uno scopo (vedi il file LICENSE).
-# NON è un dispositivo medico e non fa diagnosi: vedi DISCLAIMER.md.
+# NeoTracker - Copyright (C) 2026 the NeoTracker authors.
+# Free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+# version 3 or later. No warranty, not even of fitness for a purpose (see the LICENSE file).
+# NOT a medical device and it does not diagnose: see DISCLAIMER.md.
 """
 ==========================================================================================
- NeoTracker  -  mappa del corpo, storico dei nei, analisi automatica, UV e letteratura
+ NeoTracker  -  body map, mole history, automatic analysis, UV index and literature
 ==========================================================================================
 
-COSA È
--------
-Un'app che gira SOLO sul tuo PC. Ha una finestra tutta sua (senza barra degli indirizzi,
-con la propria icona nella barra delle applicazioni): sotto il cofano usa Edge o Chrome già
-presenti sul PC, in modalità "app". Nessun dato viene caricato su internet, tranne queste
-richieste che hai sotto controllo:
-  - il servizio meteo Open-Meteo (predefinito, gratuito) per l'indice UV di oggi, oppure OpenWeather
-    se lo scegli tu nelle Impostazioni e inserisci la tua chiave;
-  - PubMed (banca dati scientifica pubblica) per la letteratura;
-  - SkinSense (un servizio online) SOLO se lo attivi tu nelle Impostazioni.
-
-COSA FA
--------
-  1. Più utenti sullo stesso PC: all'avvio scegli chi sei (ognuno ha i suoi dati).
-  2. Profilo con fenotipo (fototipo, capelli, occhi, nei...) e familiarità.
-  3. Mappa interattiva del corpo (fronte e retro): clicchi dove si trova il neo e il
-     punto viene salvato con precisione. Puoi ingrandire, spostare il punto, rinominarlo.
-  4. Storico fotografico di ogni neo: ogni foto è salvata con la data; puoi confrontarne
-     due, misurare il diametro nel tempo e stampare una scheda per il dermatologo.
-  5. Analisi automatica di ogni foto con tutti i metodi installati (usa melanoma_batch.py).
-  6. Letteratura scientifica (PubMed) su riconoscimento dei nevi e melanoma ereditario,
-     con i geni da conoscere e i criteri per valutare una consulenza/test genetico.
-  7. Indice UV di oggi nel punto in cui ti trovi (fonte Open-Meteo; OpenWeather a scelta).
-
-COME SI AVVIA
--------------
-  - Dall'icona "NeoTracker" sul Desktop (si apre solo la finestra dell'app, nessuna finestra
-    nera), oppure
-  - aprendo questo file con Spyder e premendo PLAY (la freccia verde).
-Per FERMARE l'app basta chiudere la sua finestra con la X: il programma si spegne da solo
-(se sta analizzando una foto, finisce prima l'analisi). Se qualcosa non va, il file
-"neotracker.log" nella cartella dei dati dice cosa è successo.
-
-IMPORTANTE
+WHAT IT IS
 ----------
-NeoTracker NON è uno strumento medico e non fa diagnosi. Le reti neurali usate sono
-prototipi di ricerca. Fototipo, età e familiarità NON cambiano il risultato delle reti
-(che guardano solo i pixel della foto): servono a contestualizzare il rischio e a scegliere
-la letteratura giusta. Ogni neo che cambia, sanguina, prude o ti preoccupa va fatto vedere
-a un dermatologo, qualunque cosa dica l'app.
+An app that runs ONLY on your PC. It has a window of its own (no address bar, with its own
+icon in the taskbar): under the hood it uses the Edge or Chrome already installed on the PC,
+in "app" mode. No data is uploaded to the internet, except for these requests, which you control:
+  - the Open-Meteo weather service (default, free) for today's UV index, or OpenWeather
+    if you choose it in Settings and enter your own key;
+  - PubMed (a public scientific database) for the literature;
+  - SkinSense (an online service) ONLY if you turn it on in Settings.
+
+WHAT IT DOES
+------------
+  1. Several users on the same PC: at start-up you choose who you are (everyone has their own data).
+  2. Profile with phenotype (phototype, hair, eyes, moles...) and family history.
+  3. Interactive body map (front and back): you click where the mole is and the
+     point is saved precisely. You can zoom, move the point, rename it.
+  4. Photo history of every mole: each photo is saved with its date; you can compare
+     two of them, measure the diameter over time and print a sheet for the dermatologist.
+  5. Automatic analysis of every photo with all the installed methods (uses melanoma_batch.py).
+  6. Scientific literature (PubMed) on nevus recognition and hereditary melanoma,
+     with the genes to know about and the criteria for evaluating genetic counselling/testing.
+  7. Today's UV index where you are (source Open-Meteo; OpenWeather if you choose it).
+
+HOW TO START IT
+---------------
+  - From the "NeoTracker" icon on the Desktop (only the app window opens, no black
+    window), or
+  - by opening this file with Spyder and pressing PLAY (the green arrow).
+To STOP the app, just close its window with the X: the program shuts itself down
+(if it is analysing a photo, it finishes the analysis first). If something goes wrong, the file
+"neotracker.log" in the data folder tells you what happened.
+
+IMPORTANT
+---------
+NeoTracker is NOT a medical tool and does not diagnose. The neural networks used are
+research prototypes. Phototype, age and family history do NOT change the result of the networks
+(which only look at the pixels of the photo): they serve to put the risk in context and to choose
+the right literature. Every mole that changes, bleeds, itches or worries you must be shown
+to a dermatologist, whatever the app says.
 """
 
 # ==========================================================================================
-# 1. IMPOSTAZIONI (di solito non serve toccarle)
+# 1. SETTINGS (you usually do not need to touch them)
 # ==========================================================================================
 import os
 from pathlib import Path
 
-# Cartella dove vengono salvati TUTTI i dati (database, foto, rapporti). Se la sposti,
-# sposta anche i dati già esistenti. Il valore predefinito sta accanto ai tuoi progetti.
-# (Per cambiarla senza toccare il codice si può impostare la variabile d'ambiente NEOTRACKER_DATI.)
+# Folder where ALL the data is saved (database, photos, reports). If you move it, also move the data that
+# already exists. The default value is next to your projects. (To change it without touching the code you can
+# set the NEOTRACKER_DATI environment variable.)
 CARTELLA_DATI = Path(os.environ.get("NEOTRACKER_DATI") or (Path.home() / "melanoma-repos" / "NeoTracker_dati"))
 
-# Cartella dove sono installati i progetti di analisi (serve per lanciare melanoma_batch.py).
-# (Variabile d'ambiente facoltativa: NEOTRACKER_REPO.)
+# Folder where the analysis projects are installed (needed to launch melanoma_batch.py). (Optional environment
+# variable: NEOTRACKER_REPO.)
 CARTELLA_REPO = Path(os.environ.get("NEOTRACKER_REPO") or (Path.home() / "melanoma-repos"))
 
-# Indirizzo e porta del mini-server locale. 127.0.0.1 significa "solo questo computer":
-# nessun altro dispositivo della rete può collegarsi.
+# Address and port of the local mini-server. 127.0.0.1 means "only this computer": no other device on the
+# network can connect.
 INDIRIZZO = "127.0.0.1"
 PORTA = 8750
 
-# Quanto vecchia può essere una ricerca bibliografica in cache prima di rifarla (giorni).
+# How old a cached literature search can be before it is redone (days).
 GIORNI_CACHE_LETTERATURA = 7
 
-# Dimensione massima di una foto caricata (megabyte).
+# Maximum size of an uploaded photo (megabytes).
 MAX_MB_FOTO = 60
 
-# Dimensione massima di una foto in "megapixel" (larghezza x altezza). Serve a difendersi dalle
-# immagini-trappola, piccole come file ma enormi una volta aperte, che riempirebbero la memoria.
+# Maximum size of a photo in "megapixels" (width x height). It protects against trap images, small as files
+# but huge once opened, which would fill the memory.
 MAX_PIXEL_IMMAGINE = 150_000_000
 
 # ==========================================================================================
-# 2. LIBRERIE (tutte incluse in Python, tranne Pillow che di solito c'è già)
+# 2. LIBRARIES (all included in Python, except Pillow which is usually already there)
 # ==========================================================================================
 import base64
 import json
@@ -111,23 +110,24 @@ import hashlib
 import shutil
 
 try:
-    from PIL import Image, ImageOps          # Pillow: serve per miniature, rotazione e data di scatto
+    from PIL import Image, ImageOps          # Pillow: needed for thumbnails, rotation and the shooting date
     HA_PILLOW = True
-except Exception:                            # senza Pillow l'app funziona lo stesso, ma senza miniature
+except Exception:                            # without Pillow the app still works, but without thumbnails
     HA_PILLOW = False
 
 VERSIONE = "1.3"
-# Versione dell'avviso iniziale ("non è un dispositivo medico..."). Se la cambi, tutti gli utenti lo rivedono e lo riaccettano.
+# Version of the start-up notice ("this is not a medical device..."). If you change it, all users see it again
+# and accept it again.
 AVVERTENZE_VERSIONE = "1"
 
-# Lingue dell'interfaccia. L'italiano è il testo originale (e quello che fa fede); le altre sono traduzioni
-# (web/i18n_XX.js). Nelle Impostazioni si può scegliere anche "auto" = segui la lingua del sistema/browser.
-LINGUE = ("it", "en", "fr", "de", "es")
+# Interface languages. English is the source text of the app; the others are translations (web/i18n_XX.js). In
+# Settings you can also choose "auto" = follow the system/browser language.
+LINGUE = ("en", "it", "fr", "de", "es")
 
 
 def T(testo):
-    """Segna un testo italiano destinato all'utente: il browser lo traduce con il dizionario della lingua scelta
-    (web/i18n_XX.js), cercandolo per intero oppure, se contiene valori variabili, per "forma" (es. "{n} giorni").
-    A runtime non fa nulla: serve a build.py per verificare che ogni testo segnato abbia la traduzione."""
+    """Marks an English text meant for the user: the browser translates it with the dictionary of the chosen language
+    (web/i18n_XX.js), looking it up in full or, if it contains variable values, by "shape" (e.g. "{n} days").
+    At runtime it does nothing: build.py uses it to check that every marked text has its translation."""
     return testo
 CARTELLA_SCRIPT = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()

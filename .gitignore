@@ -1,4 +1,4 @@
-# ---- DATI PERSONALI E SEGRETI: non vanno MAI nel repository --------------------------------
+# ---- PERSONAL DATA AND SECRETS: they must NEVER go into the repository ---------------------
 NeoTracker_dati/
 profilo_finestra/
 *.db
@@ -17,7 +17,7 @@ rapporto_melanoma_*/
 *.pem
 *.key
 
-# ---- modelli e pesi di terzi (grossi e con licenze proprie: non ridistribuirli) -------------
+# ---- third-party models and weights (large, with their own licences: do not redistribute) --
 *.keras
 *.h5
 *.weights.h5
@@ -29,7 +29,7 @@ rapporto_melanoma_*/
 *.ckpt
 melanoma-repos/
 
-# ---- file generati / ambienti ------------------------------------------------------------
+# ---- generated files / environments ------------------------------------------------------
 __pycache__/
 *.pyc
 .venv/

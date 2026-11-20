@@ -1,56 +1,58 @@
-# Contribuire a NeoTracker
+# Contributing to NeoTracker
 
-Grazie! Questo è un progetto personale/di ricerca: contributi piccoli e mirati sono i benvenuti.
+Thank you! This is a personal/research project: small, focused contributions are welcome.
 
-## Prima di tutto
+## First of all
 
-- **Non allegare mai foto di nei, dati sanitari o dati personali** in Issue, Pull Request o discussioni.
-  Per riprodurre un problema usa immagini e dati inventati.
-- Le vulnerabilità vanno segnalate in privato: vedi [SECURITY.md](SECURITY.md).
-- Non verranno accettate modifiche che presentino il programma come strumento diagnostico o di screening,
-  che aggiungano telemetria, invii di dati a server non dichiarati o raccolta di dati senza consenso esplicito.
+- **Never attach photos of moles, health data or personal data** to Issues, Pull Requests or discussions.
+  To reproduce a problem use made-up images and data.
+- Vulnerabilities must be reported privately: see [SECURITY.md](SECURITY.md).
+- Changes that present the program as a diagnostic or screening tool, or that add telemetry, sending of data to
+  undeclared servers or data collection without explicit consent, will not be accepted.
 
-## Come lavorare
+## How to work
 
 ```bash
 pip install -r requirements-dev.txt
-# modifica src/ e web/ (NON neotracker.py: è generato)
+# edit src/ and web/ (NOT neotracker.py: it is generated)
 python build.py
 python tests/test_sicurezza.py && python tests/test_finestra.py && python tests/test_api.py && python tests/test_i18n.py
 bandit -q -r neotracker.py melanoma_batch.py -ll
 ```
 
-- Il programma deve restare **a file singolo con sola libreria standard** (Pillow è facoltativo).
-- Commenti e **testi originali** per l'utente **in italiano**, semplici e spiegati (il progetto è pensato anche per chi non programma).
-  Le altre lingue sono traduzioni: vedi «Lingue e traduzioni» qui sotto.
-- Ogni correzione di sicurezza o nuova funzione di rete deve avere una prova in `tests/`.
-- Nessun testo dell'interfaccia che prometta o suggerisca diagnosi; i risultati restano «sperimentali».
-- Includi sempre `python build.py` nel commit: la CI controlla che `neotracker.py` sia aggiornato.
+- The program must stay a **single file using only the standard library** (Pillow is optional).
+- Comments, documentation and the **source texts** shown to the user are written **in English**, simple and explained
+  (the project is also meant for people who do not program). The other languages are translations: see "Languages and
+  translations" below. Function and variable names are partly Italian for historical reasons; leave them as they are.
+- Every security fix or new network feature must have a test in `tests/`.
+- No interface text may promise or suggest a diagnosis; results stay "experimental".
+- Always include `python build.py` in the commit: CI checks that `neotracker.py` is up to date.
 
-## Lingue e traduzioni
+## Languages and translations
 
-L'interfaccia parla italiano, inglese, francese, tedesco e spagnolo. Il **testo italiano è l'originale e fa da chiave**:
+The interface speaks English, Italian, French, German and Spanish. The **English text is the original and acts as the key**:
 
-- in JavaScript si scrive `NT.t('Salva neo')`, con segnaposto con nome `NT.t('{n} giorni fa', { n: 3 })` e plurali con
-  `NT.tp(n, '{n} foto', '{n} foto')`; le tabelle di testi si segnano con `NT.m('...')`;
-- in Python i testi che arrivano all'utente (errori, messaggi del server, note dell'analisi) si segnano con `T("...")`;
-  per valori variabili si scrive `T("... {nome} ...").format(nome=...)`;
-- le traduzioni stanno in `web/i18n_en.js`, `i18n_fr.js`, `i18n_de.js`, `i18n_es.js` (una voce per riga: `"testo italiano": "traduzione"`);
-  i segnaposto (`{n}`, `{nome}`…) devono restare identici.
+- in JavaScript write `NT.t('Save mole')`, with named placeholders `NT.t('{n} days ago', { n: 3 })` and plurals with
+  `NT.tp(n, '{n} photo', '{n} photos')`; tables of texts are marked with `NT.m('...')`;
+- in Python the texts that reach the user (errors, server messages, analysis notes) are marked with `T("...")`;
+  for variable values write `T("... {name} ...").format(name=...)`;
+- the translations live in `web/i18n_it.js`, `i18n_fr.js`, `i18n_de.js`, `i18n_es.js` (one entry per line:
+  `"English text": "translation"`); placeholders (`{n}`, `{name}`…) must stay identical. English needs no dictionary.
 
-`python tools/traduzioni.py` controlla che ogni testo abbia la traduzione in tutte le lingue (`--mancano de` elenca quelli
-che mancano in tedesco, `--elenco` stampa tutti i testi, `--italiano` cerca testi italiani non segnati). `build.py` si ferma se
-qualcosa manca, quindi anche la CI lo verifica. I dati salvati restano in italiano (nomi delle regioni, profilo) e si
-traducono solo quando vengono mostrati; il rapporto di testo `rapporto.txt` e i messaggi della console dell'analisi restano in italiano.
-Il testo italiano delle avvertenze legali prevale sulle traduzioni.
+`python tools/traduzioni.py` checks that every text has a translation in all languages (`--missing de` lists those
+missing in German, `--list` prints all texts, `--italian` looks for unmarked Italian texts). `build.py` stops if
+anything is missing, so CI checks it too. Stored data keeps English values (region names) and the profile codes stay
+in Italian internally; they are translated only when shown. The text report `rapporto.txt` and the console messages of
+the analysis stay in English. The English text of the legal notices prevails over the translations.
 
-**Aggiungere una lingua** (per esempio `pt`): copia `web/i18n_en.js` in `web/i18n_pt.js` cambiando `.en =` in `.pt =` e traduci
-i valori; aggiungi il codice a `LINGUE` in `src/00_head.py`, a `LINGUE`, `LOCALI` e ai nomi dei mesi in `web/i18n.js`, uno
-`<script src="/i18n_pt.js">` in `web/index.html`, le traduzioni in `TESTI_AVVIO` (`src/90_main.py`) e in `_ACCESSO_NEGATO_TESTI`
-(`src/40_http.py`); poi `python tools/traduzioni.py`, `python build.py` e `python tests/e2e_lingue.py` (guarda gli screenshot
-in `tests/out/lingue/`). Le traduzioni sono state fatte con l'aiuto di un assistente AI: la revisione di madrelingua è molto gradita.
+**Adding a language** (for example `pt`): copy `web/i18n_it.js` to `web/i18n_pt.js` changing `.it =` to `.pt =` and
+translate the values; add the code to `LINGUE` in `src/00_head.py`, to `LINGUE`, `LOCALI` and the month names in
+`web/i18n.js`, a `<script src="/i18n_pt.js">` in `web/index.html`, the translations in `TESTI_AVVIO`
+(`src/90_main.py`) and in `_ACCESSO_NEGATO_TESTI` (`src/40_http.py`); then run `python tools/traduzioni.py`,
+`python build.py` and `python tests/e2e_lingue.py` (look at the screenshots in `tests/out/lingue/`). The translations
+were made with the help of an AI assistant: review by native speakers is very welcome.
 
-## Licenza dei contributi
+## Licence of contributions
 
-Inviando un contributo accetti che sia rilasciato con la licenza del progetto (GPL-3.0-or-later). Non inserire codice
-copiato da progetti senza licenza o con licenza incompatibile (vedi [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
+By submitting a contribution you agree that it is released under the project's licence (GPL-3.0-or-later). Do not add
+code copied from projects without a licence or with an incompatible licence (see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
