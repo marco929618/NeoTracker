@@ -230,6 +230,7 @@ with nt.connetti() as con:
     verifica("no table lost", con.execute("SELECT COUNT(*) FROM nevi").fetchone()[0] >= 1)
 c, r, d = rich("GET", "/api/utenti/1%20OR%201=1")
 verifica("non-numeric id in the address -> 404", c == 404)
+os.environ["NEOTRACKER_EUTILS_BASE"] = "http://127.0.0.1:9/"   # no real network: the search fails at once (502)
 c, r, d = rich("GET", "/api/letteratura/cerca?q=" + urllib.parse.quote("melanoma\" OR 1=1 --"))
 verifica("free search with strange characters breaks nothing", c in (200, 502), str(c))
 c, r, d = rich("GET", "/api/presenza?id=" + "a" * 200)
